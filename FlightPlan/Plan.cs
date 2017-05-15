@@ -92,7 +92,7 @@ namespace CIOSDigital.FlightPlan
             return ((IEnumerable<Coordinate>)Waypoints).GetEnumerator();
         }
 
-        public static Plan XMLLoad(string filename)
+        public static Plan XmlLoad(string filename)
         {
             Plan _plan = new FlightPlan.Plan();
             XmlDocument doc = new XmlDocument();

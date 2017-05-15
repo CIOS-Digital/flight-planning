@@ -83,5 +83,30 @@ namespace CIOSDigital.FlightPlanner
         {
 
         }
+
+        private void OpenItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.ActivePlan == null)
+            {
+                this.ActivePlan = Plan.Empty();
+            } else
+            {
+                Console.WriteLine("saving plan");
+                //save plan
+            }
+
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.DefaultExt = ".fpl";
+            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
+            Nullable<bool> result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                string filename = dlg.FileName;
+                Console.WriteLine(filename);
+                this.FlightTable.ActivePlan = FlightPlan.Plan.XMLLoad(filename);
+                this.FlightTable.Refresh();
+            }
+        }
     }
 }

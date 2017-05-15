@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml;
 
 namespace CIOSDigital.FlightPlanner
 {
@@ -49,6 +50,31 @@ namespace CIOSDigital.FlightPlanner
                 this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
             }
             this.FlightTable.Refresh();
+        }
+
+        private void OpenItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.ActivePlan == null)
+            {
+                this.ActivePlan = Plan.Empty();
+            } else
+            {
+                Console.WriteLine("saving plan");
+                //save plan
+            }
+
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.DefaultExt = ".fpl";
+            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
+            Nullable<bool> result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                string filename = dlg.FileName;
+                Console.WriteLine(filename);
+                this.FlightTable.ActivePlan = FlightPlan.Plan.XMLLoad(filename);
+                this.FlightTable.Refresh();
+            }
         }
     }
 }

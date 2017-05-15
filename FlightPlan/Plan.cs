@@ -91,5 +91,42 @@ namespace CIOSDigital.FlightPlan
         {
             return ((IEnumerable<Coordinate>)Waypoints).GetEnumerator();
         }
+
+        public static Plan XmlLoad(string filename)
+        {
+            Plan _plan = new FlightPlan.Plan();
+            XmlDocument doc = new XmlDocument();
+            doc.Load(filename);
+            XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
+            mgr.AddNamespace("wpns", doc.DocumentElement.NamespaceURI);
+            XmlNodeList nodes = doc.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
+            Dictionary<string, Coordinate> dic = new Dictionary<string, Coordinate>();
+            foreach (XmlNode n in nodes)
+            {
+                decimal latitude;
+                decimal longitude;
+                Coordinate c;
+                if (Decimal.TryParse(n.SelectSingleNode("wpns:lat", mgr).InnerText, out latitude) && Decimal.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out longitude))
+                {
+                    c = new Coordinate(latitude, longitude);
+                    // c.ident = n.SelectSingleNode("wpns:identifier", mgr).InnerText;
+                    // c.type = n.SelectSingleNode("wpns:type", mgr).InnerText;
+                    // c.country = n.SelectSingleNode("wpns:country-code", mgr).InnerText;
+                    // c.comment = n.SelectSingleNode("wpns:comment", mgr).InnerText;
+                    dic.Add(n.SelectSingleNode("wpns:identifier", mgr).InnerText, c);
+                }
+            }
+            XmlNodeList routes = doc.DocumentElement.SelectNodes("//wpns:route-point", mgr);
+            foreach (XmlNode n in routes)
+            {
+                string ident = n.SelectSingleNode("wpns:waypoint-identifier", mgr).InnerText;
+                Coordinate c;
+                if (dic.TryGetValue(ident, out c))
+                {
+                    _plan.AppendWaypoint(c);
+                }
+            }
+            return _plan;
+        }
     }
 }

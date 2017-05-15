@@ -27,6 +27,7 @@ namespace CIOSDigital.FlightPlanner
             set {
                 this.SetValue(ActivePlanProperty, value);
                 this.Table.ItemsSource = value;
+                this.Table.DataContext = value;
             }
         }
 

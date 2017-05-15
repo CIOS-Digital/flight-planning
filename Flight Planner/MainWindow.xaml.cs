@@ -54,31 +54,6 @@ namespace CIOSDigital.FlightPlanner
             
         }
 
-        private void OpenItem_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.ActivePlan == null)
-            {
-                this.ActivePlan = Plan.Empty();
-            } else
-            {
-                SaveItem_Click(sender, e);
-                Console.WriteLine("saving plan");
-            }
-
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.DefaultExt = ".fpl";
-            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
-            Nullable<bool> result = dlg.ShowDialog();
-
-            if (result == true)
-            {
-                string filename = dlg.FileName;
-                Console.WriteLine(filename);
-                this.FlightTable.ActivePlan = FlightPlan.Plan.XMLLoad(filename);
-                this.FlightTable.Refresh();
-            }
-        }
-
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
 
@@ -92,7 +67,8 @@ namespace CIOSDigital.FlightPlanner
             } else
             {
                 Console.WriteLine("saving plan");
-                //save plan
+                SaveItem_Click(sender, e);
+                this.ActivePlan = Plan.Empty();
             }
 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
@@ -104,7 +80,7 @@ namespace CIOSDigital.FlightPlanner
             {
                 string filename = dlg.FileName;
                 Console.WriteLine(filename);
-                this.FlightTable.ActivePlan = FlightPlan.Plan.XMLLoad(filename);
+                this.FlightTable.ActivePlan = FlightPlan.Plan.XmlLoad(filename);
                 this.FlightTable.Refresh();
             }
         }

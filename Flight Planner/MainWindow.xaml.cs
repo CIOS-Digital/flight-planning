@@ -35,6 +35,7 @@ namespace CIOSDigital.FlightPlanner
 
         public MainWindow()
         {
+            this.ActivePlan = Plan.Empty();
             InitializeComponent();
         }
 
@@ -48,8 +49,9 @@ namespace CIOSDigital.FlightPlanner
             if (Decimal.TryParse(LatitudeInput.Text, out latitude) && Decimal.TryParse(LongitudeInput.Text, out longitude))
             {
                 this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
+                this.FlightTable.Refresh();
             }
-            this.FlightTable.Refresh();
+            
         }
 
         private void OpenItem_Click(object sender, RoutedEventArgs e)
@@ -59,8 +61,8 @@ namespace CIOSDigital.FlightPlanner
                 this.ActivePlan = Plan.Empty();
             } else
             {
+                SaveItem_Click(sender, e);
                 Console.WriteLine("saving plan");
-                //save plan
             }
 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
@@ -75,6 +77,11 @@ namespace CIOSDigital.FlightPlanner
                 this.FlightTable.ActivePlan = FlightPlan.Plan.XMLLoad(filename);
                 this.FlightTable.Refresh();
             }
+        }
+
+        private void SaveItem_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

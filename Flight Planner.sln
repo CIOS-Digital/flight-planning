@@ -20,6 +20,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapControl", "MapControl\Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlightPlan", "FlightPlan\FlightPlan.csproj", "{139FEF63-425A-4D05-8EC9-88B9B09C1965}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleRunner", "ConsoleRunner\ConsoleRunner.csproj", "{29E71A59-1978-4F83-BB38-0F5527EB46FA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{139FEF63-425A-4D05-8EC9-88B9B09C1965} = {139FEF63-425A-4D05-8EC9-88B9B09C1965}
+		{C8D5226B-DEC9-4EFB-B0E1-B38E60C96656} = {C8D5226B-DEC9-4EFB-B0E1-B38E60C96656}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +52,10 @@ Global
 		{139FEF63-425A-4D05-8EC9-88B9B09C1965}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{139FEF63-425A-4D05-8EC9-88B9B09C1965}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{139FEF63-425A-4D05-8EC9-88B9B09C1965}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29E71A59-1978-4F83-BB38-0F5527EB46FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29E71A59-1978-4F83-BB38-0F5527EB46FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29E71A59-1978-4F83-BB38-0F5527EB46FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29E71A59-1978-4F83-BB38-0F5527EB46FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

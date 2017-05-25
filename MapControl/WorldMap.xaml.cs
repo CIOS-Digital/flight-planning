@@ -46,7 +46,30 @@ namespace CIOSDigital.MapControl
             this.MouseIsDown = false;
             this.MousePosition = new Point(0, 0);
             this.Coordinates = new Point(47.62, -122.35);
+            this.ImageSource = new FileFolderMap();
             InitializeComponent();
+            for (int lat = 50; lat >= 20; lat -= 1)
+            {
+                for (int lon = -125; lon <= -65; lon += 1)
+                {
+                    AddChildAt(lat, lon);
+                }
+            }
+            this.PerformScrollBy(new Vector(0, -19000));
+        }
+
+        private void AddChildAt(decimal lat, decimal lon)
+        {
+            Image child = new Image();
+            ImageSource source = ImageSource.GetImage(new MapImageSpec(new Coordinate(lat, lon), MapType.RoadMap, new Dimension(640, 640), 9.0m));
+            if (source == null) { return; }
+            child.Source = source;
+            this.Picture.Children.Add(child);
+            Canvas.SetLeft(child, (int)(lon + 125) * 364);
+            double rad = (double)lat * Math.PI / 180;
+            double bottom = (double)Math.Log(Math.Tan((Math.PI / 4) + (rad / 2)));
+            Canvas.SetBottom(child, (int)(bottom * 58 * 359));
+            Console.WriteLine("Added child at {0}, {1} -> {2}, {3}", lat, lon, child.GetValue(Canvas.LeftProperty), child.GetValue(Canvas.BottomProperty));
         }
 
         private void Root_MouseDown(object sender, MouseButtonEventArgs e)
@@ -81,9 +104,9 @@ namespace CIOSDigital.MapControl
             foreach (UIElement child in this.Picture.Children)
             {
                 double x = (double)child.GetValue(Canvas.LeftProperty);
-                double y = (double)child.GetValue(Canvas.TopProperty);
+                double y = (double)child.GetValue(Canvas.BottomProperty);
                 Canvas.SetLeft(child, x - delta.X);
-                Canvas.SetTop(child, y - delta.Y);
+                Canvas.SetBottom(child, y + delta.Y);
             }
             Picture.UpdateLayout();
         }

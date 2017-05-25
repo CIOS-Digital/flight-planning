@@ -26,23 +26,12 @@ namespace CIOSDigital.FlightPlanner
             }
             set {
                 this.SetValue(ActivePlanProperty, value);
-                this.Table.ItemsSource = value;
-                this.Table.DataContext = value;
             }
         }
 
         public FlightTable()
         {
             InitializeComponent();
-        }
-
-        public void Refresh()
-        {
-            foreach (Coordinate c in this.ActivePlan)
-            {
-                Console.WriteLine("Refreshing with coordinate {0}, {1}", c.Latitude, c.Longitude);
-            }
-            this.Table.Items.Refresh();
         }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using CIOSDigital.FlightPlan;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,8 +37,8 @@ namespace CIOSDigital.FlightPlanner
 
         public MainWindow()
         {
-            this.ActivePlan = Plan.Empty();
             InitializeComponent();
+            this.ActivePlan = Plan.Empty();
         }
 
         private void AddWaypoint_Click(object sender, RoutedEventArgs e)
@@ -49,39 +51,41 @@ namespace CIOSDigital.FlightPlanner
             if (Decimal.TryParse(LatitudeInput.Text, out latitude) && Decimal.TryParse(LongitudeInput.Text, out longitude))
             {
                 this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
-                this.FlightTable.Refresh();
             }
-            
+
         }
 
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
-
+            // TODO: Store the currently opened file path, if any
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.DefaultExt = ".fpl";
+            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
+            bool fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
+            if (fileSelected)
+            {
+                string filename = dlg.FileName;
+                using (StreamWriter writer = new StreamWriter(filename))
+                {
+                    // HACK: The flight plan index needs to be calculated or stored somewhere, not a constant.
+                    writer.Write(this.ActivePlan.ToXmlString(1));
+                }
+            }
         }
 
         private void OpenItem_Click(object sender, RoutedEventArgs e)
         {
-            if (this.ActivePlan == null)
-            {
-                this.ActivePlan = Plan.Empty();
-            } else
-            {
-                Console.WriteLine("saving plan");
-                SaveItem_Click(sender, e);
-                this.ActivePlan = Plan.Empty();
-            }
+            // TODO: Proper metric to check for unsaved changes.
 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            OpenFileDialog dlg = new OpenFileDialog();
             dlg.DefaultExt = ".fpl";
             dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
-            Nullable<bool> result = dlg.ShowDialog();
+            bool fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
 
-            if (result == true)
+            if (fileSelected)
             {
                 string filename = dlg.FileName;
-                Console.WriteLine(filename);
-                this.FlightTable.ActivePlan = FlightPlan.Plan.XmlLoad(filename);
-                this.FlightTable.Refresh();
+                this.ActivePlan = Plan.XmlLoad(filename);
             }
         }
     }

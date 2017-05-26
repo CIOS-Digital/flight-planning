@@ -26,5 +26,10 @@ namespace CIOSDigital.MapDB
                 return null;
             }
         }
+
+        public Task<ImageSource> GetImageAsync(MapImageSpec spec)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

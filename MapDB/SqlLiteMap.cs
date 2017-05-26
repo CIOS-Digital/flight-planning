@@ -16,7 +16,6 @@ namespace CIOSDigital.MapDB
     public class SQLiteMap : MapProvider
     {
         private const string API_KEY = "AIzaSyAqKdnHyxbEm1dFI6xX5Lx0TgOEbRuJ2CE";
-        private WebClient WebClient { get; }
 
         private SQLiteConnection Connection { get; }
 
@@ -48,8 +47,6 @@ namespace CIOSDigital.MapDB
                     EndTransaction();
                 }
             }
-
-            this.WebClient = new WebClient();
         }
 
         public static SQLiteMap OpenDB()
@@ -93,75 +90,110 @@ namespace CIOSDigital.MapDB
             return bitmap;
         }
 
+        public async Task<ImageSource> GetImageAsync(MapImageSpec spec)
+        {
+            byte[] cachedImage = this.GetCachedImage(spec);
+            if (cachedImage == null)
+            {
+                Task<byte[]> image = DownloadImageAsync(spec);
+                this.CacheImage(spec, await image);
+                cachedImage = await image;
+            }
+
+            MemoryStream imageStream = new MemoryStream(cachedImage);
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = imageStream;
+            bitmap.EndInit();
+            return bitmap;
+        }
+
+        const string gmapsQueryStringFormat = "https://maps.googleapis.com/maps/api/staticmap?key={0}&center={1},{2}&maptype={3}&size={4}x{5}&zoom={6}";
+
         private byte[] DownloadImage(MapImageSpec spec)
         {
-            const string queryStringFormat = "https://maps.googleapis.com/maps/api/staticmap?key={0}&center={1},{2}&maptype={3}&size={4}x{5}&zoom={6}";
-            Uri queryString = new Uri(string.Format(queryStringFormat,
+            Uri queryString = new Uri(string.Format(gmapsQueryStringFormat,
                 API_KEY,
                 spec.Coordinate.Latitude, spec.Coordinate.Longitude,
                 spec.MapType.ToString().ToLower(),
                 spec.Size.Width, spec.Size.Height,
                 spec.Zoom));
-            Console.WriteLine(queryString);
-            return this.WebClient.DownloadData(queryString);
+            return new WebClient().DownloadData(queryString);
+        }
+
+        private Task<byte[]> DownloadImageAsync(MapImageSpec spec)
+        {
+            Uri queryString = new Uri(string.Format(gmapsQueryStringFormat,
+                API_KEY,
+                spec.Coordinate.Latitude, spec.Coordinate.Longitude,
+                spec.MapType.ToString().ToLower(),
+                spec.Size.Width, spec.Size.Height,
+                spec.Zoom));
+            return new WebClient().DownloadDataTaskAsync(queryString);
         }
 
         private byte[] GetCachedImage(MapImageSpec spec)
         {
-            byte[] buffer = null;
-            const string sql = ""
-                + "SELECT PngData, PngDataLen FROM Images"
-                + "    WHERE Latitude  = @latitude"
-                + "      AND Longitude = @longitude"
-                + "      AND Width     = @width"
-                + "      AND Height    = @height"
-                + "      AND Zoom      = @zoom"
-                + "      AND MapType   = @mapType;";
-            using (SQLiteCommand command = new SQLiteCommand(sql, this.Connection))
+            lock (Connection)
             {
-                BeginTransaction();
-                command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
-                command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
-                command.Parameters.AddWithValue("@width", spec.Size.Width);
-                command.Parameters.AddWithValue("@height", spec.Size.Height);
-                command.Parameters.AddWithValue("@zoom", spec.Zoom);
-                command.Parameters.AddWithValue("@mapType", spec.MapType);
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                byte[] buffer = null;
+                const string sql = ""
+                    + "SELECT PngData, PngDataLen FROM Images"
+                    + "    WHERE Latitude  = @latitude"
+                    + "      AND Longitude = @longitude"
+                    + "      AND Width     = @width"
+                    + "      AND Height    = @height"
+                    + "      AND Zoom      = @zoom"
+                    + "      AND MapType   = @mapType;";
+                using (SQLiteCommand command = new SQLiteCommand(sql, this.Connection))
                 {
-                    if (reader.Read())
+                    BeginTransaction();
+                    command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
+                    command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
+                    command.Parameters.AddWithValue("@width", spec.Size.Width);
+                    command.Parameters.AddWithValue("@height", spec.Size.Height);
+                    command.Parameters.AddWithValue("@zoom", spec.Zoom);
+                    command.Parameters.AddWithValue("@mapType", spec.MapType);
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
-                        int length = reader.GetInt32(1);
-                        buffer = new byte[length];
-                        reader.GetBytes(0, 0, buffer, 0, length);
+                        if (reader.Read())
+                        {
+                            int length = reader.GetInt32(1);
+                            buffer = new byte[length];
+                            reader.GetBytes(0, 0, buffer, 0, length);
+                        }
                     }
+                    EndTransaction();
                 }
-                EndTransaction();
+                return buffer;
             }
-            return buffer;
         }
 
         private void CacheImage(MapImageSpec spec, byte[] image)
         {
-            const string sql = ""
+            lock (Connection)
+            {
+                const string sql = ""
                 + "INSERT OR REPLACE INTO Images VALUES ("
                 + "    @latitude, @longitude,"
                 + "    @width, @height,"
                 + "    @zoom, @mapType,"
                 + "    @pngData, @pngDataLen"
                 + ");";
-            using (SQLiteCommand command = new SQLiteCommand(sql, this.Connection))
-            {
-                BeginTransaction();
-                command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
-                command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
-                command.Parameters.AddWithValue("@width", spec.Size.Width);
-                command.Parameters.AddWithValue("@height", spec.Size.Height);
-                command.Parameters.AddWithValue("@zoom", spec.Zoom);
-                command.Parameters.AddWithValue("@mapType", spec.MapType);
-                command.Parameters.AddWithValue("@pngData", image);
-                command.Parameters.AddWithValue("@pngDataLen", image.Length);
-                command.ExecuteNonQuery();
-                EndTransaction();
+                using (SQLiteCommand command = new SQLiteCommand(sql, this.Connection))
+                {
+                    BeginTransaction();
+                    command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
+                    command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
+                    command.Parameters.AddWithValue("@width", spec.Size.Width);
+                    command.Parameters.AddWithValue("@height", spec.Size.Height);
+                    command.Parameters.AddWithValue("@zoom", spec.Zoom);
+                    command.Parameters.AddWithValue("@mapType", spec.MapType);
+                    command.Parameters.AddWithValue("@pngData", image);
+                    command.Parameters.AddWithValue("@pngDataLen", image.Length);
+                    command.ExecuteNonQuery();
+                    EndTransaction();
+                }
             }
         }
     }

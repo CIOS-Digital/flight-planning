@@ -106,17 +106,21 @@ namespace CIOSDigital.MapControl
             const double sourceMeasureResolution = 96;
             Coordinate coord = new Coordinate(lat, lon);
 
-            ImageSource source = ImageSource.GetImage(new MapImageSpec(coord, this.MapType, new Dimension(640, 640), this.ZoomLevel));
-            if (source == null) { return; }
-
-            Point centerLocation = PixelLocationOf(lat, lon, this.ZoomLevel);
+            Task<ImageSource> aSource = ImageSource.GetImageAsync(new MapImageSpec(coord, MapType, new Dimension(640, 640), ZoomLevel));
+            Point centerLocation = PixelLocationOf(lat, lon, ZoomLevel);
 
             Image child = new Image();
             child.Tag = coord;
-            child.Source = source;
             this.Picture.Children.Add(child);
-            Canvas.SetLeft(child, -this.Location.X + centerLocation.X + 0.5 * (source.Width / sourceMeasureResolution));
-            Canvas.SetBottom(child, -this.Location.Y + centerLocation.Y - 0.5 * (source.Height / sourceMeasureResolution));
+            aSource.ContinueWith((source) => {
+                this.Dispatcher.Invoke(() =>
+                {
+                    child.Source = source.Result;
+                    Panel.SetZIndex(child, (int) (100000 * (90 -((Coordinate)child.Tag).Latitude)));
+                    Canvas.SetLeft(child, -Location.X + centerLocation.X + 0.5 * (source.Result.Width / sourceMeasureResolution));
+                    Canvas.SetBottom(child, -Location.Y + centerLocation.Y - 0.5 * (source.Result.Height / sourceMeasureResolution));
+                });
+            });
         }
 
         private void Root_MouseDown(object sender, MouseButtonEventArgs e)

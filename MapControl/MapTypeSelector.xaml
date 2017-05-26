@@ -7,6 +7,7 @@
              xmlns:mapdb="clr-namespace:CIOSDigital.MapDB;assembly=MapDB"
              mc:Ignorable="d" d:DesignWidth="360">
     <Grid Width="360"
+          x:Name="Container"
           Button.Click="ButtonClicked">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>

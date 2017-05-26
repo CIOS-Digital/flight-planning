@@ -50,13 +50,12 @@ namespace CIOSDigital.MapControl
 
         public WorldMap()
         {
+            InitializeComponent();
             this.MouseIsDown = false;
             this.MousePosition = new Point(0, 0);
             this.Location = new Point(0, 0);
             this.ImageSource = SQLiteMap.OpenDB();
-            InitializeComponent();
             LastZoomLevel = ZoomLevel;
-            AddChildAt(48, -123);
             Point seattle = PixelLocationOf(Seattle, 9);
             PerformScrollBy(new Vector(seattle.X, seattle.Y));
         }
@@ -185,6 +184,12 @@ namespace CIOSDigital.MapControl
             Picture.Children.RemoveRange(0, Picture.Children.Count);
             PerformScrollBy(new Vector());
             LastZoomLevel = ZoomLevel;
+        }
+
+        private void MapTypeChanged(object sender, RoutedEventArgs e)
+        {
+            Picture.Children.RemoveRange(0, Picture.Children.Count);
+            PerformScrollBy(new Vector());
         }
     }
 }

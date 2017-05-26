@@ -27,7 +27,8 @@
                 Grid.Column="0" Grid.ColumnSpan="3">
         </Canvas>
         <local:MapTypeSelector x:Name="TypeSelector"
-                               Grid.Row="0" Grid.Column="0"/>
+                               Grid.Row="0" Grid.Column="0"
+                               MapTypeChanged="MapTypeChanged"/>
         <local:ZoomSelector x:Name="ZoomSelector"
                             Grid.Row="0" Grid.Column="2"
                             ZoomLevelChanged="ZoomLevelChanged" />

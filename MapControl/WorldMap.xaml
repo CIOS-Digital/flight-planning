@@ -29,6 +29,7 @@
         <local:MapTypeSelector x:Name="TypeSelector"
                                Grid.Row="0" Grid.Column="0"/>
         <local:ZoomSelector x:Name="ZoomSelector"
-                            Grid.Row="0" Grid.Column="2"/>
+                            Grid.Row="0" Grid.Column="2"
+                            ZoomLevelChanged="ZoomLevelChanged" />
     </Grid>
 </UserControl>

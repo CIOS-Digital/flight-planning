@@ -67,12 +67,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dimension.cs" />
-    <Compile Include="FileFolderMap.cs" />
     <Compile Include="MapProvider.cs" />
     <Compile Include="MapImageSpec.cs" />
     <Compile Include="MapType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlLiteMap.cs" />
+    <Compile Include="SQLiteMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Coordinate\Coordinate.csproj">

@@ -9,7 +9,6 @@ namespace CIOSDigital.MapDB
 {
     public interface MapProvider
     {
-        ImageSource GetImage(MapImageSpec spec);
         Task<ImageSource> GetImageAsync(MapImageSpec spec);
     }
 }

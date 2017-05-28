@@ -11,9 +11,9 @@ namespace CIOSDigital.MapDB
         public readonly Coordinate Coordinate;
         public readonly MapType MapType;
         public readonly Dimension Size;
-        public readonly decimal Zoom;
+        public readonly int Zoom;
 
-        public MapImageSpec(Coordinate coordinate, MapType type, Dimension size, decimal zoom)
+        public MapImageSpec(Coordinate coordinate, MapType type, Dimension size, int zoom)
         {
             this.Coordinate = coordinate;
             this.MapType = type;

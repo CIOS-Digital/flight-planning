@@ -5,9 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:CIOSDigital.MapControl"
              xmlns:mapdb="clr-namespace:CIOSDigital.MapDB;assembly=MapDB"
-             mc:Ignorable="d"
-             d:DesignHeight="48" d:DesignWidth="360">
-    <Grid Width="360" Height="48"
+             mc:Ignorable="d" d:DesignWidth="360">
+    <Grid Width="360"
+          x:Name="Container"
           Button.Click="ButtonClicked">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>

@@ -15,6 +15,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CIOSDigital.FlightPlan;
 using CIOSDigital.MapDB;
+using System.Threading;
+using System.ComponentModel;
 
 namespace CIOSDigital.MapControl
 {
@@ -23,11 +25,24 @@ namespace CIOSDigital.MapControl
     /// </summary>
     public partial class WorldMap : UserControl
     {
+
+        public static DependencyProperty DownloadsActiveProperty =
+            DependencyProperty.Register("DownloadsActive", typeof(int), typeof(WorldMap));
+        public int DownloadsActive {
+            get {
+                return (int)this.GetValue(DownloadsActiveProperty);
+            }
+            set {
+                this.SetValue(DownloadsActiveProperty, (int)value);
+            }
+        }
+
         private static Coordinate Seattle = new Coordinate(47.62m, -122.35m);
 
         private int LastZoomLevel {
             get; set;
         }
+
         private int ZoomLevel {
             get {
                 return this.ZoomSelector.ZoomLevel;
@@ -54,6 +69,11 @@ namespace CIOSDigital.MapControl
             this.MouseIsDown = false;
             this.MousePosition = new Point(0, 0);
             this.Location = new Point(0, 0);
+
+            if (DesignerProperties.GetIsInDesignMode(this))
+            {
+                return;
+            }
             this.ImageSource = SQLiteMap.OpenDB();
             LastZoomLevel = ZoomLevel;
             Point seattle = PixelLocationOf(Seattle, 9);
@@ -103,20 +123,27 @@ namespace CIOSDigital.MapControl
 
         private void AddChildAt(decimal lat, decimal lon)
         {
+            if (DesignerProperties.GetIsInDesignMode(this)) {
+                return;
+            }
+
             const double sourceMeasureResolution = 96;
             Coordinate coord = new Coordinate(lat, lon);
 
+            this.DownloadsActive += 1;
             Task<ImageSource> aSource = ImageSource.GetImageAsync(new MapImageSpec(coord, MapType, new Dimension(640, 640), ZoomLevel));
             Point centerLocation = PixelLocationOf(lat, lon, ZoomLevel);
 
             Image child = new Image();
             child.Tag = coord;
             this.Picture.Children.Add(child);
-            aSource.ContinueWith((source) => {
+            aSource.ContinueWith((source) =>
+            {
                 this.Dispatcher.Invoke(() =>
                 {
+                    this.DownloadsActive -= 1;
                     child.Source = source.Result;
-                    Panel.SetZIndex(child, (int) (100000 * (90 -((Coordinate)child.Tag).Latitude)));
+                    Panel.SetZIndex(child, (int)(100000 * (90 - ((Coordinate)child.Tag).Latitude)));
                     Canvas.SetLeft(child, -Location.X + centerLocation.X + 0.5 * (source.Result.Width / sourceMeasureResolution));
                     Canvas.SetBottom(child, -Location.Y + centerLocation.Y - 0.5 * (source.Result.Height / sourceMeasureResolution));
                 });

@@ -23,7 +23,13 @@
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
-            <TextBlock Text="Status..."/>
+            <TextBlock>
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="Downloading {0} images">
+                        <Binding ElementName="Map" Path="DownloadsActive"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </StatusBar>
         <Grid Name="PaneLayout" Panel.ZIndex="-1">
             <Grid.Resources>
@@ -103,9 +109,10 @@
                           HorizontalAlignment="Center" VerticalAlignment="Stretch"
                           Width="8"
                           Background="{StaticResource GripDots}" />
-            <mapcontrol:WorldMap Grid.Row="0" Grid.RowSpan="5"
-                            Grid.Column="2" Grid.ColumnSpan="1"
-                            Panel.ZIndex="-1"/>
+            <mapcontrol:WorldMap x:Name="Map"
+                                 Grid.Row="0" Grid.RowSpan="5"
+                                 Grid.Column="2" Grid.ColumnSpan="1"
+                                 Panel.ZIndex="-1"/>
         </Grid>
     </DockPanel>
 </Window>

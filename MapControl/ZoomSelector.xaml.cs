@@ -45,6 +45,11 @@ namespace CIOSDigital.MapControl
             this.ZoomLevel = 9;
         }
 
+        private void SliderChanged(object sender, RoutedEventArgs args)
+        {
+            ZoomLevelChanged?.Invoke(this, args);
+        }
+
         private void ZoomIn(object sender, RoutedEventArgs args)
         {
             this.ZoomLevel += (int)this.ZoomSlider.TickFrequency;

@@ -15,7 +15,7 @@
         <Slider x:Name="ZoomSlider"
                 MinWidth="100" VerticalAlignment="Center"
                 Value="{Binding ElementName=This,Path=ZoomLevel}"
-                Minimum="7" Maximum="12"
+                Minimum="3" Maximum="16"
                 IsSnapToTickEnabled="True" TickFrequency="1"/>
         <Button Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
                 Content="+" Click="ZoomIn"/>

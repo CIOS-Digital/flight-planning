@@ -25,6 +25,16 @@ namespace CIOSDigital.MapControl
     /// </summary>
     public partial class WorldMap : UserControl
     {
+        public static readonly DependencyProperty ActivePlanProperty =
+            DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(WorldMap));
+        public Plan ActivePlan {
+            get {
+                return this.GetValue(ActivePlanProperty) as Plan;
+            }
+            set {
+                this.SetValue(ActivePlanProperty, value);
+            }
+        }
 
         public static DependencyProperty DownloadsActiveProperty =
             DependencyProperty.Register("DownloadsActive", typeof(int), typeof(WorldMap));
@@ -56,9 +66,13 @@ namespace CIOSDigital.MapControl
         }
 
         private Point Location { get; set; }
+        private Point CenterLocation {
+            get {
+                return new Point(Location.X + this.Width / 2, Location.Y + this.Height / 2);
+            }
+        }
 
         private MapProvider ImageSource { get; set; }
-        private Plan ActivePlan { get; set; }
 
         private bool MouseIsDown { get; set; }
         private Point MousePosition { get; set; }
@@ -140,7 +154,6 @@ namespace CIOSDigital.MapControl
                 return;
             }
 
-            const double sourceMeasureResolution = 96;
             Coordinate coord = new Coordinate(lat, lon);
 
             this.DownloadsActive += 1;
@@ -160,9 +173,11 @@ namespace CIOSDigital.MapControl
                         if (source.Result != null)
                         {
                             child.Source = source.Result;
-                            Panel.SetZIndex(child, (int)(100000 * (90 - ((Coordinate)child.Tag).Latitude)));
-                            Canvas.SetLeft(child, -Location.X + centerLocation.X + 0.5 * (source.Result.Width / sourceMeasureResolution));
-                            Canvas.SetBottom(child, -Location.Y + centerLocation.Y - 0.5 * (source.Result.Height / sourceMeasureResolution));
+                            Panel.SetZIndex(child, -(int)((Coordinate)child.Tag).Latitude);
+                            double dx = 0.5 * source.Result.Width;
+                            double dy = 0.5 * source.Result.Height;
+                            Canvas.SetLeft(child, -Location.X + centerLocation.X - dx);
+                            Canvas.SetBottom(child, -Location.Y + centerLocation.Y - dy);
                         }
                     });
                 } catch (TaskCanceledException tce)
@@ -205,15 +220,13 @@ namespace CIOSDigital.MapControl
         {
             this.Location += delta;
 
-            Image[] children = new Image[Picture.Children.Count];
-            for (int i = 0; i < children.Length; i += 1)
+            for (int i = 0; i < Picture.Children.Count; i += 1)
             {
-                Image child = Picture.Children[i] as Image;
+                UIElement child = Picture.Children[i];
                 double x = (double)child.GetValue(Canvas.LeftProperty);
                 double y = (double)child.GetValue(Canvas.BottomProperty);
                 Canvas.SetLeft(child, x - delta.X);
                 Canvas.SetBottom(child, y - delta.Y);
-                children[i] = child;
             }
             Picture.UpdateLayout();
 
@@ -227,10 +240,11 @@ namespace CIOSDigital.MapControl
                           .SelectMany(lat => Enumerable.Range(-1, 2 + (int)(this.ActualWidth / basePixelsPerDegreeLongitude)).Select(lon => pair(lat, lon)))
                           .ToArray();
 
+            Image[] mapImages = Picture.Children.OfType<Image>().ToArray();
             foreach (Tuple<decimal, decimal> offset in coordinateOffsets)
             {
                 Coordinate coord = new Coordinate(near.Latitude + (offset.Item1 * alignment), near.Longitude + (offset.Item2 * alignment));
-                if (!children.Any(i => ((Coordinate)i.Tag) == coord))
+                if (!mapImages.Any(i => ((Coordinate)i.Tag) == coord))
                 {
                     this.AddChildAt(coord.Latitude, coord.Longitude);
                 }
@@ -242,18 +256,49 @@ namespace CIOSDigital.MapControl
             Location = PixelLocationOf(LocationOfPixel(Location, LastZoomLevel), ZoomLevel);
             Picture.Children.RemoveRange(0, Picture.Children.Count);
             PerformScrollBy(new Vector());
+            RefreshWaypoints();
             LastZoomLevel = ZoomLevel;
         }
 
         private void MapTypeChanged(object sender, RoutedEventArgs e)
         {
-            Picture.Children.RemoveRange(0, Picture.Children.Count);
+            {
+                Image[] images = Picture.Children.OfType<Image>().ToArray();
+                foreach (Image i in images)
+                {
+                    Picture.Children.Remove(i);
+                }
+            }
             PerformScrollBy(new Vector());
         }
 
         private void Root_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.PerformScrollBy(new Vector(0, 0));
+
+            this.PerformScrollBy(new Vector((e.PreviousSize.Width - e.NewSize.Width) / 2, (e.PreviousSize.Height - e.NewSize.Height) / 2));
+        }
+
+        public void RefreshWaypoints()
+        {
+            {
+                Handle[] handles = Picture.Children.OfType<Handle>().ToArray();
+                foreach (Handle h in handles)
+                {
+                    Picture.Children.Remove(h);
+                }
+            }
+            foreach (Coordinate c in ActivePlan)
+            {
+                Point p = PixelLocationOf(c, ZoomLevel);
+                Handle h = new Handle();
+                Picture.Children.Add(h);
+                Panel.SetZIndex(h, 500);
+                double x = -Location.X + p.X - h.Width * 0.5;
+                double y = -Location.Y + p.Y;
+                Canvas.SetLeft(h, x);
+                Canvas.SetBottom(h, y);
+            }
+            UpdateLayout();
         }
     }
 }

@@ -39,6 +39,8 @@ namespace CIOSDigital.FlightPlanner
         {
             InitializeComponent();
             this.ActivePlan = Plan.Empty();
+            // this.ActivePlan.CollectionChanged += (o, e) => this.FlightTable.Refresh();
+            this.ActivePlan.CollectionChanged += (o, e) => this.Map.RefreshWaypoints();
         }
 
         private void AddWaypoint_Click(object sender, RoutedEventArgs e)

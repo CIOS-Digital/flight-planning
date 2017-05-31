@@ -112,7 +112,8 @@
             <mapcontrol:WorldMap x:Name="Map"
                                  Grid.Row="0" Grid.RowSpan="5"
                                  Grid.Column="2" Grid.ColumnSpan="1"
-                                 Panel.ZIndex="-1"/>
+                                 Panel.ZIndex="-1"
+                                 ActivePlan="{Binding ElementName=This, Path=ActivePlan}" />
         </Grid>
     </DockPanel>
 </Window>

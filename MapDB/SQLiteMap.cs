@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -35,7 +36,9 @@ namespace CIOSDigital.MapDB
             SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
             const string filePath = "cios-digital/mapdb.sqlite3";
             string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            builder.Uri = "file://" + Path.Combine(folderPath, filePath);
+            string canonicalPath = Path.Combine(folderPath, filePath);
+            builder.Uri = "file://" + canonicalPath;
+            Directory.CreateDirectory(Path.GetDirectoryName(canonicalPath));
             return new SQLiteConnection(builder.ToString()).OpenAndReturn();
         }
 
@@ -66,7 +69,12 @@ namespace CIOSDigital.MapDB
 
         public async Task<ImageSource> GetImageAsync(MapImageSpec spec)
         {
-            byte[] image = GetCachedImage(spec);
+            if (Math.Abs(spec.Coordinate.Latitude) > 70 || Math.Abs(spec.Coordinate.Longitude) > 180)
+            {
+                return null;
+            }
+
+            byte[] image = await GetCachedImageAsync(spec);
             if (image == null)
             {
                 Task<byte[]> downloadedImage = DownloadImageAsync(spec);
@@ -93,7 +101,7 @@ namespace CIOSDigital.MapDB
             return await new WebClient().DownloadDataTaskAsync(uriBuilder.ToString());
         }
 
-        private byte[] GetCachedImage(MapImageSpec spec)
+        private async Task<byte[]> GetCachedImageAsync(MapImageSpec spec)
         {
             const string sql = ""
                 + "SELECT PngData, PngDataLen FROM Images"
@@ -103,29 +111,26 @@ namespace CIOSDigital.MapDB
                 + "      AND Height    = @height"
                 + "      AND Zoom      = @zoom"
                 + "      AND MapType   = @mapType;";
-            lock (Connection)
+            byte[] buffer = null;
+            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
             {
-                byte[] buffer = null;
-                using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
+                command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
+                command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
+                command.Parameters.AddWithValue("@width", spec.Size.Width);
+                command.Parameters.AddWithValue("@height", spec.Size.Height);
+                command.Parameters.AddWithValue("@zoom", spec.Zoom);
+                command.Parameters.AddWithValue("@mapType", spec.MapType);
+                using (SQLiteDataReader reader = await Task.Run(() => command.ExecuteReader()))
                 {
-                    command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
-                    command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
-                    command.Parameters.AddWithValue("@width", spec.Size.Width);
-                    command.Parameters.AddWithValue("@height", spec.Size.Height);
-                    command.Parameters.AddWithValue("@zoom", spec.Zoom);
-                    command.Parameters.AddWithValue("@mapType", spec.MapType);
-                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    if (reader.Read())
                     {
-                        if (reader.Read())
-                        {
-                            int length = reader.GetInt32(1);
-                            buffer = new byte[length];
-                            reader.GetBytes(0, 0, buffer, 0, length);
-                        }
+                        int length = reader.GetInt32(1);
+                        buffer = new byte[length];
+                        reader.GetBytes(0, 0, buffer, 0, length);
                     }
                 }
-                return buffer;
             }
+            return buffer;
         }
 
         private void CacheImageAsync(MapImageSpec spec, byte[] image)
@@ -137,24 +142,18 @@ namespace CIOSDigital.MapDB
             + "    @zoom, @mapType,"
             + "    @pngData, @pngDataLen"
             + ");";
-            Task ignore = Task.Run(() =>
-            {
-                lock (Connection)
+            Task ignore = Task.Run(() => {
+                using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
                 {
-                    using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
-                    {
-                        command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
-                        command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
-                        command.Parameters.AddWithValue("@width", spec.Size.Width);
-                        command.Parameters.AddWithValue("@height", spec.Size.Height);
-                        command.Parameters.AddWithValue("@zoom", spec.Zoom);
-                        command.Parameters.AddWithValue("@mapType", spec.MapType);
-                        command.Parameters.AddWithValue("@pngData", image);
-                        command.Parameters.AddWithValue("@pngDataLen", image.Length);
-                        new SQLiteCommand("BEGIN TRANSACTION;", Connection).ExecuteNonQuery();
-                        command.ExecuteNonQuery();
-                        new SQLiteCommand("END TRANSACTION;", Connection).ExecuteNonQuery();
-                    }
+                    command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
+                    command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
+                    command.Parameters.AddWithValue("@width", spec.Size.Width);
+                    command.Parameters.AddWithValue("@height", spec.Size.Height);
+                    command.Parameters.AddWithValue("@zoom", spec.Zoom);
+                    command.Parameters.AddWithValue("@mapType", spec.MapType);
+                    command.Parameters.AddWithValue("@pngData", image);
+                    command.Parameters.AddWithValue("@pngDataLen", image.Length);
+                    command.ExecuteNonQuery();
                 }
             });
         }

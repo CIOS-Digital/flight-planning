@@ -25,6 +25,16 @@ namespace CIOSDigital.MapControl
     /// </summary>
     public partial class WorldMap : UserControl
     {
+        public static readonly DependencyProperty ActivePlanProperty =
+            DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(WorldMap));
+        public Plan ActivePlan {
+            get {
+                return this.GetValue(ActivePlanProperty) as Plan;
+            }
+            set {
+                this.SetValue(ActivePlanProperty, value);
+            }
+        }
 
         public static DependencyProperty DownloadsActiveProperty =
             DependencyProperty.Register("DownloadsActive", typeof(int), typeof(WorldMap));
@@ -56,9 +66,13 @@ namespace CIOSDigital.MapControl
         }
 
         private Point Location { get; set; }
+        private Point CenterLocation {
+            get {
+                return new Point(Location.X + this.Width / 2, Location.Y + this.Height / 2);
+            }
+        }
 
         private MapProvider ImageSource { get; set; }
-        private Plan ActivePlan { get; set; }
 
         private bool MouseIsDown { get; set; }
         private Point MousePosition { get; set; }
@@ -92,7 +106,7 @@ namespace CIOSDigital.MapControl
 
         const double basePixelsPerScalerLatitude = 58.0 * 359.0;
         const double basePixelsPerDegreeLongitude = 364.0;
-        const double baseZoomLevel = 9.0;
+        const int baseZoomLevel = 9;
         const double degreesToRadians = Math.PI / 180.0;
         const double radiansToDegrees = 180.0 / Math.PI;
         const double piFourths = Math.PI / 4.0;
@@ -121,13 +135,25 @@ namespace CIOSDigital.MapControl
             return new Coordinate(latitude, longitude);
         }
 
+        private static decimal DBCoordinateAlignment(int zoomLevel)
+        {
+            return (decimal)Math.Pow(2, baseZoomLevel - zoomLevel);
+        }
+
+        private static Coordinate AlignDBCoordinate(Coordinate input, int zoomLevel)
+        {
+            decimal alignTo = DBCoordinateAlignment(zoomLevel);
+            Func<decimal, decimal> align = x => Math.Round(x / alignTo) * alignTo;
+            return new Coordinate(align(input.Latitude), align(input.Longitude));
+        }
+
         private void AddChildAt(decimal lat, decimal lon)
         {
-            if (DesignerProperties.GetIsInDesignMode(this)) {
+            if (DesignerProperties.GetIsInDesignMode(this))
+            {
                 return;
             }
 
-            const double sourceMeasureResolution = 96;
             Coordinate coord = new Coordinate(lat, lon);
 
             this.DownloadsActive += 1;
@@ -139,14 +165,26 @@ namespace CIOSDigital.MapControl
             this.Picture.Children.Add(child);
             aSource.ContinueWith((source) =>
             {
-                this.Dispatcher.Invoke(() =>
+                try
                 {
-                    this.DownloadsActive -= 1;
-                    child.Source = source.Result;
-                    Panel.SetZIndex(child, (int)(100000 * (90 - ((Coordinate)child.Tag).Latitude)));
-                    Canvas.SetLeft(child, -Location.X + centerLocation.X + 0.5 * (source.Result.Width / sourceMeasureResolution));
-                    Canvas.SetBottom(child, -Location.Y + centerLocation.Y - 0.5 * (source.Result.Height / sourceMeasureResolution));
-                });
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.DownloadsActive -= 1;
+                        if (source.Result != null)
+                        {
+                            child.Source = source.Result;
+                            Panel.SetZIndex(child, -(int)((Coordinate)child.Tag).Latitude);
+                            double dx = 0.5 * source.Result.Width;
+                            double dy = 0.5 * source.Result.Height;
+                            Canvas.SetLeft(child, -Location.X + centerLocation.X - dx);
+                            Canvas.SetBottom(child, -Location.Y + centerLocation.Y - dy);
+                        }
+                    });
+                } catch (TaskCanceledException tce)
+                {
+                    // Intentionally ignored; thrown when application exits.
+                    tce.Equals(tce);
+                }
             });
         }
 
@@ -181,30 +219,34 @@ namespace CIOSDigital.MapControl
         private void PerformScrollBy(Vector delta)
         {
             this.Location += delta;
-            Coordinate near = LocationOfPixel(this.Location, this.ZoomLevel);
-            double latitudeRounded = Math.Round((double)near.Latitude);
-            double longitudeRounded = Math.Round((double)near.Longitude);
 
-            Image[] children = new Image[Picture.Children.Count];
-            for (int i = 0; i < children.Length; i += 1)
+            for (int i = 0; i < Picture.Children.Count; i += 1)
             {
-                Image child = Picture.Children[i] as Image;
+                UIElement child = Picture.Children[i];
                 double x = (double)child.GetValue(Canvas.LeftProperty);
                 double y = (double)child.GetValue(Canvas.BottomProperty);
                 Canvas.SetLeft(child, x - delta.X);
                 Canvas.SetBottom(child, y - delta.Y);
-                children[i] = child;
             }
             Picture.UpdateLayout();
 
-            for (double latitude = latitudeRounded - 3; latitude <= latitudeRounded + 3; latitude += 1)
+            Coordinate near = AlignDBCoordinate(LocationOfPixel(Location, ZoomLevel), ZoomLevel);
+            decimal alignment = DBCoordinateAlignment(ZoomLevel);
+
+            Func<decimal, decimal, Tuple<decimal, decimal>> pair = (x, y) => new Tuple<decimal, decimal>(x, y);
+            Tuple<decimal, decimal>[] coordinateOffsets =
+                Enumerable.Range(-1, 2 + (int)this.ActualHeight / 320)
+                          .SelectMany(lat => Math.Abs(near.Latitude) > 48 ? new decimal[] { lat, lat - 0.5m } : new decimal[] { lat })
+                          .SelectMany(lat => Enumerable.Range(-1, 2 + (int)(this.ActualWidth / basePixelsPerDegreeLongitude)).Select(lon => pair(lat, lon)))
+                          .ToArray();
+
+            Image[] mapImages = Picture.Children.OfType<Image>().ToArray();
+            foreach (Tuple<decimal, decimal> offset in coordinateOffsets)
             {
-                for (double longitude = longitudeRounded - 3; longitude <= longitudeRounded + 3; longitude += 1)
+                Coordinate coord = new Coordinate(near.Latitude + (offset.Item1 * alignment), near.Longitude + (offset.Item2 * alignment));
+                if (!mapImages.Any(i => ((Coordinate)i.Tag) == coord))
                 {
-                    if (!children.Any(i => Math.Round((double)((Coordinate)i.Tag).Latitude) == latitude && Math.Round((double)((Coordinate)i.Tag).Longitude) == longitude))
-                    {
-                        this.AddChildAt((decimal)latitude, (decimal)longitude);
-                    }
+                    this.AddChildAt(coord.Latitude, coord.Longitude);
                 }
             }
         }
@@ -214,13 +256,49 @@ namespace CIOSDigital.MapControl
             Location = PixelLocationOf(LocationOfPixel(Location, LastZoomLevel), ZoomLevel);
             Picture.Children.RemoveRange(0, Picture.Children.Count);
             PerformScrollBy(new Vector());
+            RefreshWaypoints();
             LastZoomLevel = ZoomLevel;
         }
 
         private void MapTypeChanged(object sender, RoutedEventArgs e)
         {
-            Picture.Children.RemoveRange(0, Picture.Children.Count);
+            {
+                Image[] images = Picture.Children.OfType<Image>().ToArray();
+                foreach (Image i in images)
+                {
+                    Picture.Children.Remove(i);
+                }
+            }
             PerformScrollBy(new Vector());
+        }
+
+        private void Root_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+
+            this.PerformScrollBy(new Vector((e.PreviousSize.Width - e.NewSize.Width) / 2, (e.PreviousSize.Height - e.NewSize.Height) / 2));
+        }
+
+        public void RefreshWaypoints()
+        {
+            {
+                Handle[] handles = Picture.Children.OfType<Handle>().ToArray();
+                foreach (Handle h in handles)
+                {
+                    Picture.Children.Remove(h);
+                }
+            }
+            foreach (Coordinate c in ActivePlan)
+            {
+                Point p = PixelLocationOf(c, ZoomLevel);
+                Handle h = new Handle();
+                Picture.Children.Add(h);
+                Panel.SetZIndex(h, 500);
+                double x = -Location.X + p.X - h.Width * 0.5;
+                double y = -Location.Y + p.Y;
+                Canvas.SetLeft(h, x);
+                Canvas.SetBottom(h, y);
+            }
+            UpdateLayout();
         }
     }
 }

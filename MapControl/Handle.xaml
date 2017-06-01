@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CIOSDigital.MapControl"
              mc:Ignorable="d" 
-             Width="64" Height="64">
+             Width="16" Height="32">
     <UserControl.Resources>
         <BitmapImage x:Key="Handle" x:Shared="false" UriSource="Resources/Handle.png"/>
     </UserControl.Resources>

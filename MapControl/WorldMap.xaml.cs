@@ -173,14 +173,15 @@ namespace CIOSDigital.MapControl
                         if (source.Result != null)
                         {
                             child.Source = source.Result;
-                            Panel.SetZIndex(child, -(int)((Coordinate)child.Tag).Latitude);
+                            Panel.SetZIndex(child, (int) (-1000 * ((Coordinate)child.Tag).Latitude));
                             double dx = 0.5 * source.Result.Width;
                             double dy = 0.5 * source.Result.Height;
                             Canvas.SetLeft(child, -Location.X + centerLocation.X - dx);
                             Canvas.SetBottom(child, -Location.Y + centerLocation.Y - dy);
                         }
                     });
-                } catch (TaskCanceledException tce)
+                }
+                catch (TaskCanceledException tce)
                 {
                     // Intentionally ignored; thrown when application exits.
                     tce.Equals(tce);
@@ -223,10 +224,21 @@ namespace CIOSDigital.MapControl
             for (int i = 0; i < Picture.Children.Count; i += 1)
             {
                 UIElement child = Picture.Children[i];
-                double x = (double)child.GetValue(Canvas.LeftProperty);
-                double y = (double)child.GetValue(Canvas.BottomProperty);
-                Canvas.SetLeft(child, x - delta.X);
-                Canvas.SetBottom(child, y - delta.Y);
+                if (child is Line)
+                {
+                    Line l = (Line)child;
+                    l.X1 -= delta.X;
+                    l.X2 -= delta.X;
+                    l.Y1 += delta.Y;
+                    l.Y2 += delta.Y;
+                }
+                else
+                {
+                    double x = (double)child.GetValue(Canvas.LeftProperty);
+                    double y = (double)child.GetValue(Canvas.BottomProperty);
+                    Canvas.SetLeft(child, x - delta.X);
+                    Canvas.SetBottom(child, y - delta.Y);
+                }
             }
             Picture.UpdateLayout();
 
@@ -276,17 +288,25 @@ namespace CIOSDigital.MapControl
         {
 
             this.PerformScrollBy(new Vector((e.PreviousSize.Width - e.NewSize.Width) / 2, (e.PreviousSize.Height - e.NewSize.Height) / 2));
+            RefreshWaypoints();
         }
 
         public void RefreshWaypoints()
         {
             {
                 Handle[] handles = Picture.Children.OfType<Handle>().ToArray();
-                foreach (Handle h in handles)
+                foreach (UIElement h in handles)
                 {
                     Picture.Children.Remove(h);
                 }
+                Line[] lines = Picture.Children.OfType<Line>().ToArray();
+                foreach (UIElement l in lines)
+                {
+                    Picture.Children.Remove(l);
+                }
             }
+
+            Handle previous = null;
             foreach (Coordinate c in ActivePlan)
             {
                 Point p = PixelLocationOf(c, ZoomLevel);
@@ -297,6 +317,21 @@ namespace CIOSDigital.MapControl
                 double y = -Location.Y + p.Y;
                 Canvas.SetLeft(h, x);
                 Canvas.SetBottom(h, y);
+                if (previous != null)
+                {
+                    Line l = new Line();
+                    Picture.Children.Add(l);
+                    l.Stroke = new SolidColorBrush(Color.FromArgb(0xA0, 0xFF, 0x0, 0x0));
+                    l.StrokeThickness = 4;
+                    l.StrokeStartLineCap = PenLineCap.Round;
+                    l.StrokeEndLineCap = PenLineCap.Round;
+                    l.X1 = previous.Width / 2 + (double)previous.GetValue(Canvas.LeftProperty);
+                    l.Y1 = Picture.ActualHeight - (double)previous.GetValue(Canvas.BottomProperty);
+                    l.X2 = h.Width / 2 + (double)h.GetValue(Canvas.LeftProperty);
+                    l.Y2 = Picture.ActualHeight - (double)h.GetValue(Canvas.BottomProperty);
+                    Console.WriteLine("{0},{1} to {2},{3}", l.X1, l.Y1, l.X2, l.Y2);
+                }
+                previous = h;
             }
             UpdateLayout();
         }

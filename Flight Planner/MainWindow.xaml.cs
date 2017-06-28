@@ -54,7 +54,7 @@ namespace CIOSDigital.FlightPlanner
             {
                 this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
             }
-
+            Map.RefreshWaypoints();
         }
 
         private void SaveItem_Click(object sender, RoutedEventArgs e)
@@ -88,6 +88,7 @@ namespace CIOSDigital.FlightPlanner
             {
                 string filename = dlg.FileName;
                 this.ActivePlan = Plan.XmlLoad(filename);
+                Map.RefreshWaypoints();
             }
         }
     }

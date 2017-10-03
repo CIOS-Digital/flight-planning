@@ -86,8 +86,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Model\Coordinate.cs" />
-    <Compile Include="Database\MapImageSpec.cs" />
-    <Compile Include="Database\MapProvider.cs" />
+    <Compile Include="Database\TileSpecifier.cs" />
+    <Compile Include="Database\IMapProvider.cs" />
     <Compile Include="Model\MapType.cs" />
     <Compile Include="Database\SQLiteMap.cs" />
     <Compile Include="View\FlightTable.xaml.cs">
@@ -107,7 +107,7 @@
       <DependentUpon>ZoomSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\Plan.cs" />
-    <Compile Include="Converters\ProportionConverter.cs" />
+    <Compile Include="Converters\ScaleConverter.cs" />
     <Compile Include="Utility\StringWriterUtf8.cs" />
     <Page Include="View\FlightTable.xaml">
       <SubType>Designer</SubType>

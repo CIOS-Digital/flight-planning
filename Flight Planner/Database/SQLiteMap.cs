@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 
 namespace CIOSDigital.FlightPlanner.Database
 {
-    public class SQLiteMap : MapProvider
+    public class SQLiteMap : IMapProvider
     {
         private const string API_KEY = "AIzaSyAqKdnHyxbEm1dFI6xX5Lx0TgOEbRuJ2CE";
 
@@ -62,7 +62,7 @@ namespace CIOSDigital.FlightPlanner.Database
             }
         }
 
-        public async Task<ImageSource> GetImageAsync(MapImageSpec spec)
+        public async Task<ImageSource> GetImageAsync(TileSpecifier spec)
         {
             if (Math.Abs(spec.Coordinate.Latitude) > 70 || Math.Abs(spec.Coordinate.Longitude) > 180)
             {
@@ -85,7 +85,7 @@ namespace CIOSDigital.FlightPlanner.Database
             return bitmap;
         }
 
-        private async Task<byte[]> DownloadImageAsync(MapImageSpec spec)
+        private async Task<byte[]> DownloadImageAsync(TileSpecifier spec)
         {
             StringBuilder uriBuilder = new StringBuilder("https://maps.googleapis.com/maps/api/staticmap");
             uriBuilder.AppendFormat("?key={0}", API_KEY);
@@ -96,7 +96,7 @@ namespace CIOSDigital.FlightPlanner.Database
             return await new WebClient().DownloadDataTaskAsync(uriBuilder.ToString());
         }
 
-        private async Task<byte[]> GetCachedImageAsync(MapImageSpec spec)
+        private async Task<byte[]> GetCachedImageAsync(TileSpecifier spec)
         {
             const string sql = ""
                 + "SELECT PngData, PngDataLen FROM Images"
@@ -128,7 +128,7 @@ namespace CIOSDigital.FlightPlanner.Database
             return buffer;
         }
 
-        private void CacheImageAsync(MapImageSpec spec, byte[] image)
+        private void CacheImageAsync(TileSpecifier spec, byte[] image)
         {
             const string sql = ""
             + "INSERT OR REPLACE INTO Images VALUES ("
@@ -137,7 +137,8 @@ namespace CIOSDigital.FlightPlanner.Database
             + "    @zoom, @mapType,"
             + "    @pngData, @pngDataLen"
             + ");";
-            Task ignore = Task.Run(() => {
+            Task ignore = Task.Run(() =>
+            {
                 using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
                 {
                     command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);

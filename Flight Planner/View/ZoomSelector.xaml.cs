@@ -4,9 +4,6 @@ using System.Windows.Controls;
 
 namespace CIOSDigital.FlightPlanner.View
 {
-    /// <summary>
-    /// Interaction logic for ZoomSelector.xaml
-    /// </summary>
     public partial class ZoomSelector : UserControl
     {
         public static readonly DependencyProperty ZoomLevelProperty =

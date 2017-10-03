@@ -11,17 +11,12 @@ namespace CIOSDigital.FlightPlanner.Model
     public class Plan : IEnumerable<Coordinate>, INotifyCollectionChanged
     {
         private readonly List<Coordinate> Waypoints;
-        
+
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-        private Plan()
+        public Plan()
         {
             Waypoints = new List<Coordinate>();
-        }
-
-        public static Plan Empty()
-        {
-            return new Plan();
         }
 
         public string ToXmlString(uint flightPlanIndex)

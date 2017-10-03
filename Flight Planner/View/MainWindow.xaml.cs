@@ -1,31 +1,17 @@
 ﻿using CIOSDigital.FlightPlanner.Model;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Xml;
 
 namespace CIOSDigital.FlightPlanner.View
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(MainWindow));
+
         public Plan ActivePlan {
             get => this.GetValue(ActivePlanProperty) as Plan;
             set => this.SetValue(ActivePlanProperty, value);
@@ -34,7 +20,7 @@ namespace CIOSDigital.FlightPlanner.View
         public MainWindow()
         {
             InitializeComponent();
-            this.ActivePlan = Plan.Empty();
+            this.ActivePlan = new Plan();
             // this.ActivePlan.CollectionChanged += (o, e) => this.FlightTable.Refresh();
             this.ActivePlan.CollectionChanged += (o, e) => this.Map.RefreshWaypoints();
         }
@@ -43,7 +29,7 @@ namespace CIOSDigital.FlightPlanner.View
         {
             if (this.ActivePlan == null)
             {
-                this.ActivePlan = Plan.Empty();
+                this.ActivePlan = new Plan();
             }
             decimal latitude, longitude;
             if (Decimal.TryParse(LatitudeInput.Text, out latitude) && Decimal.TryParse(LongitudeInput.Text, out longitude))

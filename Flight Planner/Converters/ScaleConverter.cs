@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace CIOSDigital.FlightPlanner.Converters
 {
-    public class ProportionConverter : IValueConverter
+    public class ScaleConverter : IValueConverter
     {
         public double Scale { get; set; }
 

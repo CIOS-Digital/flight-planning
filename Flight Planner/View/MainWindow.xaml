@@ -34,8 +34,8 @@
         <Grid Name="PaneLayout" Panel.ZIndex="-1">
             <Grid.Resources>
                 <ImageBrush x:Key="GripDots" x:Shared="false" Stretch="None" ImageSource="/Resources/GripDot.png"/>
-                <conv:ProportionConverter x:Key="OneTenth" Scale="0.1"/>
-                <conv:ProportionConverter x:Key="NineTenths" Scale="0.9"/>
+                <conv:ScaleConverter x:Key="OneTenth" Scale="0.1"/>
+                <conv:ScaleConverter x:Key="NineTenths" Scale="0.9"/>
             </Grid.Resources>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="200px"
@@ -110,10 +110,10 @@
                           Width="8"
                           Background="{StaticResource GripDots}" />
             <local:WorldMap x:Name="Map"
-                                 Grid.Row="0" Grid.RowSpan="5"
-                                 Grid.Column="2" Grid.ColumnSpan="1"
-                                 Panel.ZIndex="-1"
-                                 ActivePlan="{Binding ElementName=This, Path=ActivePlan}" />
+                            Grid.Row="0" Grid.RowSpan="5"
+                            Grid.Column="2" Grid.ColumnSpan="1"
+                            Panel.ZIndex="-1"
+                            ActivePlan="{Binding ElementName=This, Path=ActivePlan}" />
         </Grid>
     </DockPanel>
 </Window>

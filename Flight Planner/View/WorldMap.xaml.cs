@@ -12,15 +12,20 @@ using System.Windows.Shapes;
 
 namespace CIOSDigital.FlightPlanner.View
 {
-    /// <summary>
-    /// Interaction logic for WorldMap.xaml
-    /// </summary>
     public partial class WorldMap : UserControl
     {
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(WorldMap));
         public Plan ActivePlan {
-            get => this.GetValue(ActivePlanProperty) as Plan;
+            get {
+                var plan = this.GetValue(ActivePlanProperty) as Plan;
+                if (plan == null)
+                {
+                    plan = new Plan();
+                    ActivePlan = plan;
+                }
+                return plan;
+            }
             set => this.SetValue(ActivePlanProperty, value);
         }
 
@@ -56,7 +61,7 @@ namespace CIOSDigital.FlightPlanner.View
             }
         }
 
-        private MapProvider ImageSource { get; set; }
+        private IMapProvider ImageSource { get; set; }
 
         private bool MouseIsDown { get; set; }
         private Point MousePosition { get; set; }
@@ -141,7 +146,7 @@ namespace CIOSDigital.FlightPlanner.View
             Coordinate coord = new Coordinate(lat, lon);
 
             this.DownloadsActive += 1;
-            Task<ImageSource> aSource = ImageSource.GetImageAsync(new MapImageSpec(coord, MapType, new Size(640, 640), ZoomLevel));
+            Task<ImageSource> aSource = ImageSource.GetImageAsync(new TileSpecifier(coord, MapType, new Size(640, 640), ZoomLevel));
             Point centerLocation = PixelLocationOf(lat, lon, ZoomLevel);
 
             Image child = new Image();
@@ -277,17 +282,15 @@ namespace CIOSDigital.FlightPlanner.View
 
         public void RefreshWaypoints()
         {
+            WorldMapHandle[] handles = Picture.Children.OfType<WorldMapHandle>().ToArray();
+            foreach (UIElement h in handles)
             {
-                WorldMapHandle[] handles = Picture.Children.OfType<WorldMapHandle>().ToArray();
-                foreach (UIElement h in handles)
-                {
-                    Picture.Children.Remove(h);
-                }
-                Line[] lines = Picture.Children.OfType<Line>().ToArray();
-                foreach (UIElement l in lines)
-                {
-                    Picture.Children.Remove(l);
-                }
+                Picture.Children.Remove(h);
+            }
+            Line[] lines = Picture.Children.OfType<Line>().ToArray();
+            foreach (UIElement l in lines)
+            {
+                Picture.Children.Remove(l);
             }
 
             WorldMapHandle previous = null;

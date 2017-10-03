@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="CIOSDigital.FlightPlanner.View.MapTypeSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:model="clr-namespace:CIOSDigital.FlightPlanner.Model"
+             mc:Ignorable="d" d:DesignWidth="360">
+    <Grid Width="360"
+          x:Name="Container"
+          Button.Click="ButtonClicked">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.Resources>
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            </Style>
+        </Grid.Resources>
+        <Button x:Name="DefaultButton"
+                IsEnabled="False"
+                Grid.Row="0" Grid.Column="0"
+                Tag="{x:Static model:MapType.RoadMap}"
+                Content="Roads" />
+        <Button Grid.Row="0" Grid.Column="1"
+                Tag="{x:Static model:MapType.Terrain}"
+                Content="Terrain" />
+        <Button Grid.Row="0" Grid.Column="2"
+                Tag="{x:Static model:MapType.Satellite}"
+                Content="Satellite" />
+        <Button Grid.Row="0" Grid.Column="3"
+                Tag="{x:Static model:MapType.Hybrid}"
+                Content="Hybrid" />
+    </Grid>
+</UserControl>

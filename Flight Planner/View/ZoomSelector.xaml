@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="CIOSDigital.FlightPlanner.View.ZoomSelector"
+             x:Name="This"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:conv="clr-namespace:CIOSDigital.FlightPlanner.Converters"
+             mc:Ignorable="d">
+    <StackPanel Orientation="Horizontal" Background="Gray">
+        <StackPanel.Resources>
+            <conv:StringFormatConverter x:Key="ZLvlConv" FormatString="Zoom Level: {0}"/>
+        </StackPanel.Resources>
+        <Button Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                Content="-" Click="ZoomOut"/>
+        <Slider x:Name="ZoomSlider"
+                MinWidth="100" VerticalAlignment="Center"
+                Value="{Binding ElementName=This,Path=ZoomLevel}"
+                Minimum="3" Maximum="16"
+                IsSnapToTickEnabled="True" TickFrequency="1"
+                ValueChanged="SliderChanged"/>
+        <Button Width="{Binding RelativeSource={RelativeSource Self}, Path=ActualHeight}"
+                Content="+" Click="ZoomIn"/>
+    </StackPanel>
+</UserControl>

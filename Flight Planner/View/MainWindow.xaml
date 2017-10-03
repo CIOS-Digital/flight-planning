@@ -33,7 +33,7 @@
         </StatusBar>
         <Grid Name="PaneLayout" Panel.ZIndex="-1">
             <Grid.Resources>
-                <ImageBrush x:Key="GripDots" x:Shared="false" Stretch="None" ImageSource="Resources/GripDot.png"/>
+                <ImageBrush x:Key="GripDots" x:Shared="false" Stretch="None" ImageSource="/Resources/GripDot.png"/>
                 <conv:ProportionConverter x:Key="OneTenth" Scale="0.1"/>
                 <conv:ProportionConverter x:Key="NineTenths" Scale="0.9"/>
             </Grid.Resources>

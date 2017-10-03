@@ -8,7 +8,7 @@
     <UserControl.Resources>
         <BitmapImage x:Key="Handle"
                      x:Shared="false"
-                     UriSource="Resources/Handle.png"/>
+                     UriSource="/Resources/Handle.png"/>
     </UserControl.Resources>
     <Image Source="{StaticResource Handle}" />
 </UserControl>

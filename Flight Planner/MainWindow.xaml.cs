@@ -67,7 +67,7 @@ namespace CIOSDigital.FlightPlanner
             if (fileSelected)
             {
                 string filename = dlg.FileName;
-                using (StreamWriter writer = new StreamWriter(filename))
+                using (StreamWriter writer = new StreamWriter(new FileStream(filename, FileMode.Create, FileAccess.Write), Encoding.UTF8))
                 {
                     // HACK: The flight plan index needs to be calculated or stored somewhere, not a constant.
                     writer.Write(this.ActivePlan.ToXmlString(1));

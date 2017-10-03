@@ -30,7 +30,7 @@ namespace CIOSDigital.FlightPlan
         {
             string xmlns = "http://www8.garmin.com/xmlschemas/FlightPlan/v1";
 
-            StringWriter buffer = new StringWriter();
+            StringWriter buffer = new StringWriterUtf8();
             XmlTextWriter writer = new XmlTextWriter(buffer);
             writer.Formatting = Formatting.Indented;
 

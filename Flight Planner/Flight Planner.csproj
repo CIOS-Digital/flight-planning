@@ -108,7 +108,6 @@
     </Compile>
     <Compile Include="Model\FlightPlan.cs" />
     <Compile Include="Converters\ScaleConverter.cs" />
-    <Compile Include="Utility\StringWriterUtf8.cs" />
     <Page Include="View\FlightTable.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

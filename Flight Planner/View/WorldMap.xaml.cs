@@ -15,13 +15,13 @@ namespace CIOSDigital.FlightPlanner.View
     public partial class WorldMap : UserControl
     {
         public static readonly DependencyProperty ActivePlanProperty =
-            DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(WorldMap));
-        public Plan ActivePlan {
+            DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(WorldMap));
+        public FlightPlan ActivePlan {
             get {
-                var plan = this.GetValue(ActivePlanProperty) as Plan;
+                var plan = this.GetValue(ActivePlanProperty) as FlightPlan;
                 if (plan == null)
                 {
-                    plan = new Plan();
+                    plan = new FlightPlan();
                     ActivePlan = plan;
                 }
                 return plan;

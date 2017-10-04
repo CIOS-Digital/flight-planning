@@ -7,10 +7,10 @@ namespace CIOSDigital.FlightPlanner.View
     public partial class FlightTable : UserControl
     {
         public static readonly DependencyProperty ActivePlanProperty =
-            DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(FlightTable));
+            DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(FlightTable));
 
-        public Plan ActivePlan {
-            get => this.GetValue(ActivePlanProperty) as Plan;
+        public FlightPlan ActivePlan {
+            get => this.GetValue(ActivePlanProperty) as FlightPlan;
             set => this.SetValue(ActivePlanProperty, value);
         }
 

@@ -106,7 +106,7 @@
     <Compile Include="View\ZoomSelector.xaml.cs">
       <DependentUpon>ZoomSelector.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\Plan.cs" />
+    <Compile Include="Model\FlightPlan.cs" />
     <Compile Include="Converters\ScaleConverter.cs" />
     <Compile Include="Utility\StringWriterUtf8.cs" />
     <Page Include="View\FlightTable.xaml">

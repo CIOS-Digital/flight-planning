@@ -4,23 +4,24 @@ using System;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Xml;
 
 namespace CIOSDigital.FlightPlanner.View
 {
     public partial class MainWindow : Window
     {
         public static readonly DependencyProperty ActivePlanProperty =
-            DependencyProperty.Register("ActivePlan", typeof(Plan), typeof(MainWindow));
+            DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(MainWindow));
 
-        public Plan ActivePlan {
-            get => this.GetValue(ActivePlanProperty) as Plan;
+        public FlightPlan ActivePlan {
+            get => this.GetValue(ActivePlanProperty) as FlightPlan;
             set => this.SetValue(ActivePlanProperty, value);
         }
 
         public MainWindow()
         {
             InitializeComponent();
-            this.ActivePlan = new Plan();
+            this.ActivePlan = new FlightPlan();
             // this.ActivePlan.CollectionChanged += (o, e) => this.FlightTable.Refresh();
             this.ActivePlan.CollectionChanged += (o, e) => this.Map.RefreshWaypoints();
         }
@@ -29,10 +30,10 @@ namespace CIOSDigital.FlightPlanner.View
         {
             if (this.ActivePlan == null)
             {
-                this.ActivePlan = new Plan();
+                this.ActivePlan = new FlightPlan();
             }
-            decimal latitude, longitude;
-            if (Decimal.TryParse(LatitudeInput.Text, out latitude) && Decimal.TryParse(LongitudeInput.Text, out longitude))
+            if (Decimal.TryParse(LatitudeInput.Text, out decimal latitude)
+                && Decimal.TryParse(LongitudeInput.Text, out decimal longitude))
             {
                 this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
             }
@@ -42,9 +43,11 @@ namespace CIOSDigital.FlightPlanner.View
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Store the currently opened file path, if any
-            SaveFileDialog dlg = new SaveFileDialog();
-            dlg.DefaultExt = ".fpl";
-            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
+            SaveFileDialog dlg = new SaveFileDialog()
+            {
+                DefaultExt = ".fpl",
+                Filter = "Flight Plan Files (*.fpl)|*.fpl",
+            };
             bool fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
             if (fileSelected)
             {
@@ -52,7 +55,7 @@ namespace CIOSDigital.FlightPlanner.View
                 using (StreamWriter writer = new StreamWriter(new FileStream(filename, FileMode.Create, FileAccess.Write), Encoding.UTF8))
                 {
                     // HACK: The flight plan index needs to be calculated or stored somewhere, not a constant.
-                    writer.Write(this.ActivePlan.ToXmlString(1));
+                    this.ActivePlan.FplWrite(writer, 1);
                 }
             }
         }
@@ -61,15 +64,19 @@ namespace CIOSDigital.FlightPlanner.View
         {
             // TODO: Proper metric to check for unsaved changes.
 
-            OpenFileDialog dlg = new OpenFileDialog();
-            dlg.DefaultExt = ".fpl";
-            dlg.Filter = "Flight Plan Files (*.fpl)|*.fpl";
+            OpenFileDialog dlg = new OpenFileDialog()
+            {
+                DefaultExt = ".fpl",
+                Filter = "Flight Plan Files (*.fpl)|*.fpl",
+            };
             bool fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
 
             if (fileSelected)
             {
                 string filename = dlg.FileName;
-                this.ActivePlan = Plan.XmlLoad(filename);
+                XmlDocument fplDocument = new XmlDocument();
+                fplDocument.Load(filename);
+                this.ActivePlan = FlightPlan.FplRead(fplDocument);
                 Map.RefreshWaypoints();
             }
         }

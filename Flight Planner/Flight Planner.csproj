@@ -85,15 +85,34 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="FlightTable.xaml.cs">
+    <Compile Include="Model\Coordinate.cs" />
+    <Compile Include="Database\TileSpecifier.cs" />
+    <Compile Include="Database\IMapProvider.cs" />
+    <Compile Include="Model\MapType.cs" />
+    <Compile Include="Database\SQLiteMap.cs" />
+    <Compile Include="View\FlightTable.xaml.cs">
       <DependentUpon>FlightTable.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ProportionConverter.cs" />
-    <Page Include="FlightTable.xaml">
+    <Compile Include="View\WorldMapHandle.xaml.cs">
+      <DependentUpon>WorldMapHandle.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\MapTypeSelector.xaml.cs">
+      <DependentUpon>MapTypeSelector.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Converters\StringFormatConverter.cs" />
+    <Compile Include="View\WorldMap.xaml.cs">
+      <DependentUpon>WorldMap.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ZoomSelector.xaml.cs">
+      <DependentUpon>ZoomSelector.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Model\FlightPlan.cs" />
+    <Compile Include="Converters\ScaleConverter.cs" />
+    <Page Include="View\FlightTable.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -101,10 +120,26 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="View\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\WorldMapHandle.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\MapTypeSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\WorldMap.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\ZoomSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -141,22 +176,7 @@
     <Resource Include="Resources\GripDot.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Coordinate\Coordinate.csproj">
-      <Project>{c8d5226b-dec9-4efb-b0e1-b38e60c96656}</Project>
-      <Name>Coordinate</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\FlightPlan\FlightPlan.csproj">
-      <Project>{139fef63-425a-4d05-8ec9-88b9b09c1965}</Project>
-      <Name>FlightPlan</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MapControl\MapControl.csproj">
-      <Project>{2df156f9-2114-4ab9-b246-1f16e33cf3e2}</Project>
-      <Name>MapControl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MapDB\MapDB.csproj">
-      <Project>{a46c4a12-7e15-41d2-9ef9-a3008c4d03c8}</Project>
-      <Name>MapDB</Name>
-    </ProjectReference>
+    <Resource Include="Resources\Handle.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.105.1\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.105.1\build\net451\System.Data.SQLite.Core.targets')" />

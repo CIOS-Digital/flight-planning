@@ -44,14 +44,13 @@ namespace CIOSDigital.FlightPlanner.Model
                 writer.WriteEndElement();
             }
 
-            Func<int, string> getWaypointName = (i) => string.Format("WP{0:0000}", i);
             { // Write table of waypoints
                 writer.WriteStartElement("waypoint-table");
                 for (int i = 0; i < this.Waypoints.Count; i += 1)
                 {
                     Waypoint waypoint = this.Waypoints[i];
                     writer.WriteStartElement("waypoint");
-                    writer.WriteElementString("identifier", getWaypointName(i));
+                    writer.WriteElementString("identifier", waypoint.id);
                     writer.WriteElementString("type", "USER WAYPOINT");
                     writer.WriteElementString("country-code", "__");
                     writer.WriteElementString("lat", waypoint.coordinate.Latitude.ToString());
@@ -69,7 +68,7 @@ namespace CIOSDigital.FlightPlanner.Model
                 {
                     Waypoint waypoint = this.Waypoints[i];
                     writer.WriteStartElement("route-point");
-                    writer.WriteElementString("waypoint-identifier", getWaypointName(i));
+                    writer.WriteElementString("waypoint-identifier", waypoint.id);
                     writer.WriteElementString("waypoint-type", "USER WAYPOINT");
                     writer.WriteElementString("waypoint-country-code", "__");
                     writer.WriteEndElement();

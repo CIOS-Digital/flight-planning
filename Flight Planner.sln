@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flight Planner", "Flight Planner\Flight Planner.csproj", "{E935DECB-8628-480B-BF3E-78DA6E93EC99}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "FlightPlanningSetup", "FlightPlanningSetup\FlightPlanningSetup.vdproj", "{083D74BC-E418-4C6A-95B1-B404E719AF70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,8 @@ Global
 		{E935DECB-8628-480B-BF3E-78DA6E93EC99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E935DECB-8628-480B-BF3E-78DA6E93EC99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E935DECB-8628-480B-BF3E-78DA6E93EC99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{083D74BC-E418-4C6A-95B1-B404E719AF70}.Debug|Any CPU.ActiveCfg = Debug
+		{083D74BC-E418-4C6A-95B1-B404E719AF70}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

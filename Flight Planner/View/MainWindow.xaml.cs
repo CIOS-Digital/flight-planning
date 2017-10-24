@@ -35,7 +35,8 @@ namespace CIOSDigital.FlightPlanner.View
             if (Decimal.TryParse(LatitudeInput.Text, out decimal latitude)
                 && Decimal.TryParse(LongitudeInput.Text, out decimal longitude))
             {
-                this.ActivePlan.AppendWaypoint(new Coordinate(latitude, longitude));
+                Coordinate c = new Coordinate(latitude, longitude);
+                this.ActivePlan.AppendWaypoint(new Waypoint(IDInput.Text, c));
             }
             Map.RefreshWaypoints();
         }

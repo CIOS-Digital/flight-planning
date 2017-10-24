@@ -17,11 +17,11 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Button Grid.Row="0" Grid.Column="0"
-                Content="Delete"/>
+                Content="Delete" IsEnabled="False"/>
         <Button Grid.Row="0" Grid.Column="1"
-                Content="Move Up"/>
+                Content="Move Up" IsEnabled="False"/>
         <Button Grid.Row="0" Grid.Column="2"
-                Content="Move Down"/>
+                Content="Move Down" IsEnabled="False"/>
         <DataGrid x:Name="Table"
                   Grid.Row="1" Grid.Column="0"
                   Grid.RowSpan="1" Grid.ColumnSpan="3"
@@ -31,8 +31,9 @@
                   CanUserSortColumns="False"
                   ItemsSource="{Binding ElementName=This, Path=ActivePlan}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=Latitude}" />
-                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=Longitude}" />
+                <DataGridTextColumn Header="ID" Binding="{Binding Path=id}" />
+                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=coordinate.Latitude}" />
+                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=coordinate.Longitude}" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

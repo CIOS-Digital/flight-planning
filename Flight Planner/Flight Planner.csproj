@@ -90,6 +90,7 @@
     <Compile Include="Database\IMapProvider.cs" />
     <Compile Include="Model\MapType.cs" />
     <Compile Include="Database\SQLiteMap.cs" />
+    <Compile Include="Model\Waypoint.cs" />
     <Compile Include="View\FlightTable.xaml.cs">
       <DependentUpon>FlightTable.xaml</DependentUpon>
     </Compile>

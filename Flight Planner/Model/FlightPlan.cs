@@ -1,5 +1,4 @@
-﻿using CIOSDigital.FlightPlanner.Utility;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -8,24 +7,24 @@ using System.Xml;
 
 namespace CIOSDigital.FlightPlanner.Model
 {
-    public class FlightPlan : IEnumerable<Coordinate>, INotifyCollectionChanged
+    public class FlightPlan : IEnumerable<Waypoint>, INotifyCollectionChanged
     {
-        private readonly List<Coordinate> Waypoints;
+        private readonly List<Waypoint> Waypoints;
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         public FlightPlan()
         {
-            Waypoints = new List<Coordinate>();
+            Waypoints = new List<Waypoint>();
         }
 
-        public void AppendWaypoint(Coordinate c)
+        public void AppendWaypoint(Waypoint w)
         {
-            this.Waypoints.Add(c);
+            this.Waypoints.Add(w);
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
-        public IEnumerator<Coordinate> GetEnumerator() => Waypoints.GetEnumerator();
+        public IEnumerator<Waypoint> GetEnumerator() => Waypoints.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => Waypoints.GetEnumerator();
 
         public void FplWrite(TextWriter writeTo, uint flightPlanIndex)
@@ -50,13 +49,13 @@ namespace CIOSDigital.FlightPlanner.Model
                 writer.WriteStartElement("waypoint-table");
                 for (int i = 0; i < this.Waypoints.Count; i += 1)
                 {
-                    Coordinate waypoint = this.Waypoints[i];
+                    Waypoint waypoint = this.Waypoints[i];
                     writer.WriteStartElement("waypoint");
                     writer.WriteElementString("identifier", getWaypointName(i));
                     writer.WriteElementString("type", "USER WAYPOINT");
                     writer.WriteElementString("country-code", "__");
-                    writer.WriteElementString("lat", waypoint.Latitude.ToString());
-                    writer.WriteElementString("lon", waypoint.Longitude.ToString());
+                    writer.WriteElementString("lat", waypoint.coordinate.Latitude.ToString());
+                    writer.WriteElementString("lon", waypoint.coordinate.Longitude.ToString());
                     writer.WriteElementString("comment", "");
                     writer.WriteEndElement();
                 }
@@ -68,7 +67,7 @@ namespace CIOSDigital.FlightPlanner.Model
                 writer.WriteElementString("flight-plan-index", flightPlanIndex.ToString());
                 for (int i = 0; i < this.Waypoints.Count; i += 1)
                 {
-                    Coordinate waypoint = this.Waypoints[i];
+                    Waypoint waypoint = this.Waypoints[i];
                     writer.WriteStartElement("route-point");
                     writer.WriteElementString("waypoint-identifier", getWaypointName(i));
                     writer.WriteElementString("waypoint-type", "USER WAYPOINT");
@@ -107,7 +106,7 @@ namespace CIOSDigital.FlightPlanner.Model
                 string ident = n.SelectSingleNode("wpns:waypoint-identifier", mgr).InnerText;
                 if (idToCoordinate.TryGetValue(ident, out Coordinate c))
                 {
-                    plan.AppendWaypoint(c);
+                    plan.AppendWaypoint(new Waypoint(ident, c));
                 }
             }
 

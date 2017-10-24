@@ -76,12 +76,15 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Latitude"/>
-                <TextBox x:Name="LatitudeInput" Grid.Row="0" Grid.Column="1" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Longitude" />
-                <TextBox x:Name="LongitudeInput" Grid.Row="1" Grid.Column="1" />
-                <Button Grid.Row="2" Grid.Column="0"
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="ID"/>
+                <TextBox x:Name="IDInput" Grid.Row="0" Grid.Column="1" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Latitude"/>
+                <TextBox x:Name="LatitudeInput" Grid.Row="1" Grid.Column="1" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Longitude" />
+                <TextBox x:Name="LongitudeInput" Grid.Row="2" Grid.Column="1" />
+                <Button Grid.Row="3" Grid.Column="0"
                         Grid.RowSpan="1" Grid.ColumnSpan="2"
                         Content="Add Waypoint"
                         Click="AddWaypoint_Click"/>
@@ -90,25 +93,25 @@
                        Height="8"
                        Fill="WhiteSmoke" />
             <local:FlightTable x:Name="FlightTable"
-                               Grid.Row="2" Grid.RowSpan="1"
+                               Grid.Row="2" Grid.RowSpan="3"
                                Grid.Column="0" Grid.ColumnSpan="1"
                                ActivePlan="{Binding ElementName=This, Path=ActivePlan}"/>
-            <GridSplitter Name="VSplitter"
+            <!--<GridSplitter Name="VSplitter"
                           Grid.Row="3" Grid.RowSpan="1"
                           Grid.Column="0" Grid.ColumnSpan="1"
                           HorizontalAlignment="Stretch" VerticalAlignment="Center"
                           Height="8"
-                          Background="{StaticResource GripDots}" />
-            <StackPanel Grid.Row="4" Grid.RowSpan="1"
+                          Background="{StaticResource GripDots}" />-->
+            <!--<StackPanel Grid.Row="4" Grid.RowSpan="1"
                         Grid.Column="0" Grid.ColumnSpan="1"
                         Background="White">
                 <TextBlock Text="(Other flight plans in folder)"/>
-            </StackPanel>
-            <GridSplitter Grid.Row="0" Grid.RowSpan="5"
+            </StackPanel>-->
+            <!--<GridSplitter Grid.Row="0" Grid.RowSpan="5"
                           Grid.Column="1" Grid.ColumnSpan="1"
                           HorizontalAlignment="Center" VerticalAlignment="Stretch"
                           Width="8"
-                          Background="{StaticResource GripDots}" />
+                          Background="{StaticResource GripDots}" />-->
             <local:WorldMap x:Name="Map"
                             Grid.Row="0" Grid.RowSpan="5"
                             Grid.Column="2" Grid.ColumnSpan="1"

@@ -294,9 +294,9 @@ namespace CIOSDigital.FlightPlanner.View
             }
 
             WorldMapHandle previous = null;
-            foreach (Coordinate c in ActivePlan)
+            foreach (Waypoint w in ActivePlan)
             {
-                Point p = PixelLocationOf(c, ZoomLevel);
+                Point p = PixelLocationOf(w.coordinate, ZoomLevel);
                 WorldMapHandle h = new WorldMapHandle();
                 Picture.Children.Add(h);
                 Panel.SetZIndex(h, 500);

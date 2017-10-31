@@ -4,24 +4,38 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Xml;
+using System.Linq;
 
 namespace CIOSDigital.FlightPlanner.Model
 {
     public class FlightPlan : IEnumerable<Waypoint>, INotifyCollectionChanged
     {
         private readonly List<Waypoint> Waypoints;
+        protected List<Waypoint> originalWaypoints;
+        public string filename;
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         public FlightPlan()
         {
             Waypoints = new List<Waypoint>();
+            originalWaypoints = new List<Waypoint>();
         }
 
         public void AppendWaypoint(Waypoint w)
         {
             this.Waypoints.Add(w);
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+
+        public void DuplicateWaypoints()
+        {
+            originalWaypoints = new List<Waypoint>(Waypoints);
+        }
+
+        public bool IsModified()
+        {
+            return !((this.originalWaypoints.Count == this.Waypoints.Count) && !this.originalWaypoints.Except(this.Waypoints).Any());
         }
 
         public IEnumerator<Waypoint> GetEnumerator() => Waypoints.GetEnumerator();
@@ -83,7 +97,7 @@ namespace CIOSDigital.FlightPlanner.Model
         public static FlightPlan FplRead(XmlDocument document)
         {
             FlightPlan plan = new FlightPlan();
-
+            plan.filename = new Uri(document.BaseURI).LocalPath;
             XmlNamespaceManager mgr = new XmlNamespaceManager(document.NameTable);
             mgr.AddNamespace("wpns", document.DocumentElement.NamespaceURI);
             XmlNodeList nodes = document.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
@@ -108,7 +122,7 @@ namespace CIOSDigital.FlightPlanner.Model
                     plan.AppendWaypoint(new Waypoint(ident, c));
                 }
             }
-
+            plan.DuplicateWaypoints();
             return plan;
         }
     }

@@ -29,7 +29,7 @@
                 MouseRightButtonUp="Picture_MouseRightButtonUp"
                 MouseLeave="Root_MouseLeave"
                 MouseMove="Root_MouseMove">
-            <Popup Name="floatingTip" IsOpen="True" PreviewMouseMove="Root_MouseMove" AllowsTransparency="False" Placement="MousePoint">
+            <Popup Name="floatingTip" IsOpen="True" PreviewMouseMove="Root_MouseMove" AllowsTransparency="False" Placement="MousePoint" VerticalOffset="-20">
                 <TextBlock x:Name="coordinateTip" Background="Yellow" Text="{Binding mouseCoord}">
                 </TextBlock>
             </Popup>

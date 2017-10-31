@@ -7,16 +7,16 @@
         xmlns:local="clr-namespace:CIOSDigital.FlightPlanner.View"
         xmlns:conv="clr-namespace:CIOSDigital.FlightPlanner.Converters"
         mc:Ignorable="d"
-        Title="Flight Planner | CIOS Digital">
+        Title="Flight Planner | CIOS Digital" Closing="This_Closing">
     <DockPanel Name="MainPanel">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New"/>
-                <MenuItem Header="_Save"/>
-                <MenuItem Header="Save _As" Click="SaveItem_Click"/>
+                <MenuItem Header="_Save" Click="SaveItem_Click"/>
+                <MenuItem Header="Save _As" Click="SaveAsItem_Click"/>
                 <MenuItem Header="_Open" Click="OpenItem_Click"/>
                 <Separator/>
-                <MenuItem Header="_Quit"/>
+                <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About"/>

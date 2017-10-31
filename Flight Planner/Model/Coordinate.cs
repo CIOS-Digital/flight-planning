@@ -5,6 +5,12 @@
         public decimal Latitude { get; }
         public decimal Longitude { get; }
 
+        public Coordinate(Coordinate coord)
+        {
+            this.Latitude = coord.Latitude;
+            this.Longitude = coord.Longitude;
+        }
+
         public Coordinate(decimal latitude, decimal longitude)
         {
             this.Latitude = latitude;

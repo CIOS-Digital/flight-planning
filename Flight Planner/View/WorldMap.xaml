@@ -25,8 +25,17 @@
         </Grid.RowDefinitions>
         <Canvas Name="Picture"
                 Grid.Row="0" Grid.RowSpan="2"
-                Grid.Column="0" Grid.ColumnSpan="3">
+                Grid.Column="0" Grid.ColumnSpan="3"
+                MouseRightButtonUp="Picture_MouseRightButtonUp"
+                MouseLeave="Root_MouseLeave"
+                MouseMove="Root_MouseMove">
+            <Popup Name="floatingTip" IsOpen="True" PreviewMouseMove="Root_MouseMove" AllowsTransparency="False" Placement="MousePoint">
+                <TextBlock x:Name="coordinateTip" Background="Yellow" Text="{Binding mouseCoord}">
+                </TextBlock>
+            </Popup>
         </Canvas>
+
+
         <local:MapTypeSelector x:Name="TypeSelector"
                                Grid.Row="0" Grid.Column="0"
                                MapTypeChanged="MapTypeChanged"/>

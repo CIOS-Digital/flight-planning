@@ -18,5 +18,28 @@ namespace CIOSDigital.FlightPlanner.View
         {
             InitializeComponent();
         }
+
+        private void DeleteSelectedClick(object sender, RoutedEventArgs e)
+        {
+            if (this.Table.SelectedItem != null)
+            {
+                this.ActivePlan.RemoveWaypoint((Waypoint)this.Table.SelectedItem);
+            }
+        }
+
+        private void MoveSelectedUpClick(object sender, RoutedEventArgs e)
+        {
+            if (this.Table.SelectedItem != null)
+            {
+                this.ActivePlan.Move((Waypoint)this.Table.SelectedItem, Direction.Up);
+            }
+        }
+        private void MoveSelectedDownClick(object sender, RoutedEventArgs e)
+        {
+            if (this.Table.SelectedItem != null)
+            {
+                this.ActivePlan.Move((Waypoint)this.Table.SelectedItem, Direction.Down);
+            }
+        }
     }
 }

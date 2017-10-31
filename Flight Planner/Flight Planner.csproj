@@ -88,11 +88,15 @@
     <Compile Include="Model\Coordinate.cs" />
     <Compile Include="Database\TileSpecifier.cs" />
     <Compile Include="Database\IMapProvider.cs" />
+    <Compile Include="Model\Direction.cs" />
     <Compile Include="Model\MapType.cs" />
     <Compile Include="Database\SQLiteMap.cs" />
     <Compile Include="Model\Waypoint.cs" />
     <Compile Include="View\FlightTable.xaml.cs">
       <DependentUpon>FlightTable.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PopupText.xaml.cs">
+      <DependentUpon>PopupText.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\WorldMapHandle.xaml.cs">
       <DependentUpon>WorldMapHandle.xaml</DependentUpon>
@@ -125,6 +129,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="View\PopupText.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\WorldMapHandle.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

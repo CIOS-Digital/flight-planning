@@ -10,10 +10,15 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using System.Diagnostics;
+
 namespace CIOSDigital.FlightPlanner.View
 {
     public partial class WorldMap : UserControl
     {
+        private Point mousePoint;
+        public Coordinate mouseCoord { get; set; }
+        public Coordinate popupLoc { get; set; }
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(WorldMap));
         public FlightPlan ActivePlan {
@@ -70,7 +75,7 @@ namespace CIOSDigital.FlightPlanner.View
         {
             InitializeComponent();
             this.MouseIsDown = false;
-            this.MousePosition = new Point(0, 0);
+            //this.MousePosition = new Point(0, 0);
             this.Location = new Point(0, 0);
 
             if (DesignerProperties.GetIsInDesignMode(this))
@@ -192,6 +197,7 @@ namespace CIOSDigital.FlightPlanner.View
         private void Root_MouseLeave(object sender, MouseEventArgs e)
         {
             this.MouseIsDown = false;
+            floatingTip.IsOpen = false;
         }
 
         private void Root_MouseMove(object sender, MouseEventArgs e)
@@ -203,6 +209,15 @@ namespace CIOSDigital.FlightPlanner.View
                 Vector delta = Point.Subtract(previous, this.MousePosition);
                 delta.Y *= -1;
                 this.PerformScrollBy(delta);
+            } else
+            {
+                floatingTip.IsOpen = false;
+                mousePoint = e.GetPosition(this);
+                Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
+                mousePoint = modifiedMouse;
+                mouseCoord = LocationOfPixel(mousePoint, ZoomLevel);
+                coordinateTip.Text = mouseCoord.ToString();
+                floatingTip.IsOpen = true;
             }
         }
 
@@ -321,6 +336,84 @@ namespace CIOSDigital.FlightPlanner.View
                 previous = h;
             }
             UpdateLayout();
+        }
+
+        private void Picture_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            popupLoc = new Coordinate(mouseCoord);
+            ContextMenu contextMenu = new ContextMenu();
+            contextMenu.Items.Add(popupLoc);
+            contextMenu.Items.Add(new Separator());
+
+            Waypoint waypoint = nearWaypoint(popupLoc);
+
+                MenuItem delWaypoint = new MenuItem();
+                delWaypoint.Header = "Delete Waypoint";
+                delWaypoint.Click += delegate { DeleteWaypoint(waypoint); };
+                delWaypoint.IsEnabled = false;
+            if (waypoint.id != null)
+                delWaypoint.IsEnabled = true;
+            contextMenu.Items.Add(delWaypoint);
+
+            MenuItem addWaypoint = new MenuItem();
+            addWaypoint.Header = "Add Waypoint";
+            addWaypoint.Click += delegate { AddWaypoint(null); };
+            MenuItem addWaypoint2 = new MenuItem();
+            addWaypoint2.Header = "Add Waypoint (no ID)";
+            addWaypoint2.Click += delegate { AddWaypoint(this.ActivePlan.Count<Waypoint>().ToString()); };
+
+            contextMenu.Items.Add(addWaypoint);
+            contextMenu.Items.Add(addWaypoint2);
+
+            contextMenu.PlacementTarget = sender as Button;
+            contextMenu.IsOpen = true;
+        }
+
+        Point distance(Coordinate one, Coordinate two)
+        {
+            Point pone = PixelLocationOf(one, ZoomLevel);
+            Point ptwo = PixelLocationOf(two, ZoomLevel);
+            Point d = new Point(Math.Abs(pone.X - ptwo.X), Math.Abs(pone.Y - ptwo.Y));
+            return d;
+        }
+
+        private void AddWaypoint(String id)
+        {
+            if (String.IsNullOrEmpty(id)) {
+                var dialog = new PopupText(mousePoint);
+                dialog.ResponseTextBox.Focus();
+                if (dialog.ShowDialog() == true)
+                {
+                    this.ActivePlan.AppendWaypoint(new Waypoint(dialog.ResponseText, popupLoc));
+                }
+            } else
+            {
+                this.ActivePlan.AppendWaypoint(new Waypoint("W_" + id, popupLoc));
+            }
+        }
+
+        private void DeleteWaypoint(Waypoint w)
+        {
+            this.ActivePlan.RemoveWaypoint(w);
+        }
+        private Waypoint nearWaypoint(Coordinate coord)
+        {
+            Waypoint waypoint = new Waypoint();
+            Point smallestDistance = new Point(Int32.MaxValue, Int32.MaxValue);
+            foreach (Waypoint w in ActivePlan)
+            {
+                Point d = distance(coord, w.coordinate);
+                if ((d.X < 15) && (d.Y >= -10 && d.Y < 32))
+                {
+                    if (d.X < smallestDistance.X && d.Y < smallestDistance.Y)
+                    {
+                        waypoint = w;
+                        smallestDistance = d;
+                    }
+                }
+
+            }
+            return waypoint;
         }
     }
 }

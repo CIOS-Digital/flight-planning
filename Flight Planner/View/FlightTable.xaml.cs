@@ -23,7 +23,7 @@ namespace CIOSDigital.FlightPlanner.View
         {
             if (this.Table.SelectedItem != null)
             {
-                this.ActivePlan.RemoveWaypoint((Waypoint)this.Table.SelectedItem);
+                ActivePlan.RemoveWaypoint((Waypoint)this.Table.SelectedItem);
             }
         }
 

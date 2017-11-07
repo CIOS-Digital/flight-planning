@@ -35,7 +35,7 @@ namespace CIOSDigital.FlightPlanner.Model
 
         public void RemoveWaypoint(Waypoint w)
         {
-            this.Waypoints.Remove(w);
+            Waypoints.Remove(w);
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 

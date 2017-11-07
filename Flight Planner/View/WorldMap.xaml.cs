@@ -347,10 +347,10 @@ namespace CIOSDigital.FlightPlanner.View
 
             Waypoint waypoint = nearWaypoint(popupLoc);
 
-                MenuItem delWaypoint = new MenuItem();
-                delWaypoint.Header = "Delete Waypoint";
-                delWaypoint.Click += delegate { DeleteWaypoint(waypoint); };
-                delWaypoint.IsEnabled = false;
+            MenuItem delWaypoint = new MenuItem();
+            delWaypoint.Header = "Delete Waypoint";
+            delWaypoint.Click += delegate { DeleteWaypoint(waypoint); };
+            delWaypoint.IsEnabled = false;
             if (waypoint.id != null)
                 delWaypoint.IsEnabled = true;
             contextMenu.Items.Add(delWaypoint);
@@ -373,7 +373,7 @@ namespace CIOSDigital.FlightPlanner.View
         {
             Point pone = PixelLocationOf(one, ZoomLevel);
             Point ptwo = PixelLocationOf(two, ZoomLevel);
-            Point d = new Point(Math.Abs(pone.X - ptwo.X), Math.Abs(pone.Y - ptwo.Y));
+            Point d = new Point(Math.Abs(pone.X - ptwo.X), pone.Y - ptwo.Y);
             return d;
         }
 
@@ -390,11 +390,13 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 this.ActivePlan.AppendWaypoint(new Waypoint("W_" + id, popupLoc));
             }
+            RefreshWaypoints();
         }
 
         private void DeleteWaypoint(Waypoint w)
         {
             this.ActivePlan.RemoveWaypoint(w);
+            RefreshWaypoints();
         }
         private Waypoint nearWaypoint(Coordinate coord)
         {

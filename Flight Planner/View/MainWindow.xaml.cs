@@ -126,5 +126,15 @@ namespace CIOSDigital.FlightPlanner.View
                 }
             }
         }
+
+        private void NewItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!PromptSave())
+            {
+                return;
+            }
+            this.ActivePlan = new FlightPlan();
+            Map.RefreshWaypoints();
+        }
     }
 }

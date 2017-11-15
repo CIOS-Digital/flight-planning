@@ -33,8 +33,8 @@
                   ItemsSource="{Binding ElementName=This, Path=ActivePlan}">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Path=id}" />
-                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=coordinate.Latitude}" />
-                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=coordinate.Longitude}" />
+                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=coordinate.dmsLatitude}" />
+                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=coordinate.dmsLongitude}" />
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

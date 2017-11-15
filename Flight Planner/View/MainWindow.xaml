@@ -23,13 +23,22 @@
             </MenuItem>
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
-            <TextBlock>
-                <TextBlock.Text>
-                    <MultiBinding StringFormat="Downloading {0} images">
-                        <Binding ElementName="Map" Path="DownloadsActive"/>
-                    </MultiBinding>
-                </TextBlock.Text>
-            </TextBlock>
+            <StatusBarItem DockPanel.Dock="Left">
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="Downloading {0} images">
+                            <Binding ElementName="Map" Path="DownloadsActive"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StatusBarItem>
+            <StatusBarItem DockPanel.Dock="Right" HorizontalAlignment="Right">
+                <TextBlock>
+                    <TextBlock.Text>
+                        <Binding ElementName="Map" Path="MouseCoord"/>
+                    </TextBlock.Text>
+                </TextBlock>
+            </StatusBarItem>
         </StatusBar>
         <Grid Name="PaneLayout" Panel.ZIndex="-1">
             <Grid.Resources>

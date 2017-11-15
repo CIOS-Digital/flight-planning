@@ -28,6 +28,22 @@ namespace CIOSDigital.FlightPlanner.Model
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
+        public void ModifyWaypoint(int windex, Coordinate coord)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(Waypoints[windex].id, coord);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                //                this.Waypoints.Insert(temp, new Waypoint(w.id, coord));
+                //              this.Waypoints.Remove(w);
+            }
+        }
+
+        public int GetWaypointIndex(Waypoint w)
+        {
+            return Waypoints.IndexOf(w);
+        }
+
         public void DuplicateWaypoints()
         {
             originalWaypoints = new List<Waypoint>(Waypoints);

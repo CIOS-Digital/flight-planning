@@ -7,11 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="640" d:DesignWidth="800"
              Name="Root"
-             SizeChanged="Root_SizeChanged"
-             MouseDown="Root_MouseDown"
-             MouseUp="Root_MouseUp"
-             MouseMove="Root_MouseMove"
-             MouseLeave="Root_MouseLeave" >
+             SizeChanged="Root_SizeChanged">
     <!--     MouseWheel="Root_MouseWheel" -->
     <Grid Background="Gray">
         <Grid.ColumnDefinitions>
@@ -26,14 +22,10 @@
         <Canvas Name="Picture"
                 Grid.Row="0" Grid.RowSpan="2"
                 Grid.Column="0" Grid.ColumnSpan="3"
-                MouseRightButtonUp="Picture_MouseRightButtonUp"
-                MouseLeave="Root_MouseLeave"
-                MouseMove="Root_MouseMove">
-            <Popup Name="floatingTip" IsOpen="True" PreviewMouseMove="Root_MouseMove" AllowsTransparency="False" Placement="MousePoint" VerticalOffset="-20">
-                <TextBlock x:Name="coordinateTip" Background="Yellow" Text="{Binding mouseCoord}">
-                </TextBlock>
-            </Popup>
-        </Canvas>
+              MouseMove="Root_MouseMove"
+
+             MouseRightButtonUp="Picture_MouseRightButtonUp"
+             MouseLeftButtonUp="Root_MouseUp" MouseLeftButtonDown="Root_MouseDown" PreviewMouseLeftButtonUp="Picture_PreviewMouseLeftButtonUp"/>
 
 
         <local:MapTypeSelector x:Name="TypeSelector"

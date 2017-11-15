@@ -19,6 +19,8 @@ namespace CIOSDigital.FlightPlanner.View
         private Point mousePoint;
         public Coordinate mouseCoord { get; set; }
         public Coordinate popupLoc { get; set; }
+        private int movingPointIndex;
+        private Boolean ismovingpoint;
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(WorldMap));
         public FlightPlan ActivePlan {
@@ -39,6 +41,14 @@ namespace CIOSDigital.FlightPlanner.View
         public int DownloadsActive {
             get => (int)this.GetValue(DownloadsActiveProperty);
             set => this.SetValue(DownloadsActiveProperty, (int)value);
+        }
+
+        public static DependencyProperty MouseCoordinateProperty =
+    DependencyProperty.Register("MouseCoord", typeof(Coordinate), typeof(WorldMap));
+        public Coordinate MouseCoord
+        {
+            get => (Coordinate)this.GetValue(MouseCoordinateProperty);
+            set => this.SetValue(MouseCoordinateProperty, (Coordinate)value);
         }
 
         private static Coordinate Seattle = new Coordinate(47.62m, -122.35m);
@@ -68,13 +78,11 @@ namespace CIOSDigital.FlightPlanner.View
 
         private IMapProvider ImageSource { get; set; }
 
-        private bool MouseIsDown { get; set; }
         private Point MousePosition { get; set; }
 
         public WorldMap()
         {
             InitializeComponent();
-            this.MouseIsDown = false;
             //this.MousePosition = new Point(0, 0);
             this.Location = new Point(0, 0);
 
@@ -185,39 +193,55 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void Root_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.MouseIsDown = true;
             this.MousePosition = e.GetPosition(this);
+            mousePoint = e.GetPosition(this);
+            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
+            mousePoint = modifiedMouse;
+            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
+            Waypoint waypoint = nearWaypoint(MouseCoord);
+            if (waypoint.id != null)
+            {
+                ismovingpoint = true;
+                movingPointIndex = ActivePlan.GetWaypointIndex(waypoint);
+            }
         }
 
         private void Root_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            this.MouseIsDown = false;
-        }
-
-        private void Root_MouseLeave(object sender, MouseEventArgs e)
-        {
-            this.MouseIsDown = false;
-            floatingTip.IsOpen = false;
+            if (ismovingpoint)
+            {
+                ismovingpoint = false;
+                ActivePlan.ModifyWaypoint(movingPointIndex, MouseCoord);
+                RefreshWaypoints();
+            }
         }
 
         private void Root_MouseMove(object sender, MouseEventArgs e)
         {
-            if (MouseIsDown)
+            mousePoint = e.GetPosition(this);
+            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
+            mousePoint = modifiedMouse;
+            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
+
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
-                Point previous = this.MousePosition;
-                this.MousePosition = e.GetPosition(this);
-                Vector delta = Point.Subtract(previous, this.MousePosition);
-                delta.Y *= -1;
-                this.PerformScrollBy(delta);
+                if (ismovingpoint)
+                {
+                    ActivePlan.ModifyWaypoint(movingPointIndex, MouseCoord);
+                    RefreshWaypoints();
+                }
+                else
+                {
+                    Point previous = this.MousePosition;
+                    this.MousePosition = e.GetPosition(this);
+                    Vector delta = Point.Subtract(previous, this.MousePosition);
+                    delta.Y *= -1;
+                    this.PerformScrollBy(delta);
+                }
             } else
             {
-                floatingTip.IsOpen = false;
-                mousePoint = e.GetPosition(this);
-                Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
-                mousePoint = modifiedMouse;
-                mouseCoord = LocationOfPixel(mousePoint, ZoomLevel);
-                coordinateTip.Text = mouseCoord.ToString();
-                floatingTip.IsOpen = true;
+                //I really hate this... but its the only way I can get around WPF eating the mouse up event
+                Root_MouseUp(sender, e as MouseButtonEventArgs);
             }
         }
 
@@ -331,7 +355,7 @@ namespace CIOSDigital.FlightPlanner.View
                     l.Y1 = Picture.ActualHeight - (double)previous.GetValue(Canvas.BottomProperty);
                     l.X2 = h.Width / 2 + (double)h.GetValue(Canvas.LeftProperty);
                     l.Y2 = Picture.ActualHeight - (double)h.GetValue(Canvas.BottomProperty);
-                    Console.WriteLine("{0},{1} to {2},{3}", l.X1, l.Y1, l.X2, l.Y2);
+ //                   Console.WriteLine("{0},{1} to {2},{3}", l.X1, l.Y1, l.X2, l.Y2);
                 }
                 previous = h;
             }
@@ -340,7 +364,7 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void Picture_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            popupLoc = new Coordinate(mouseCoord);
+            popupLoc = new Coordinate(MouseCoord);
             ContextMenu contextMenu = new ContextMenu();
             contextMenu.Items.Add(popupLoc);
             contextMenu.Items.Add(new Separator());
@@ -398,6 +422,7 @@ namespace CIOSDigital.FlightPlanner.View
             this.ActivePlan.RemoveWaypoint(w);
             RefreshWaypoints();
         }
+
         private Waypoint nearWaypoint(Coordinate coord)
         {
             Waypoint waypoint = new Waypoint();
@@ -416,6 +441,11 @@ namespace CIOSDigital.FlightPlanner.View
 
             }
             return waypoint;
+        }
+
+        private void Picture_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            Debug.WriteLine("testing");
         }
     }
 }

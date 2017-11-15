@@ -15,15 +15,17 @@ namespace CIOSDigital.FlightPlanner.View
 
         public FlightPlan ActivePlan {
             get => this.GetValue(ActivePlanProperty) as FlightPlan;
-            set => this.SetValue(ActivePlanProperty, value);
+            set {
+                this.SetValue(ActivePlanProperty, value);
+                value.CollectionChanged += (o, e) =>
+                    this.Map.RefreshWaypoints();
+            }
         }
 
         public MainWindow()
         {
             InitializeComponent();
             this.ActivePlan = new FlightPlan();
-            // this.ActivePlan.CollectionChanged += (o, e) => this.FlightTable.Refresh();
-            this.ActivePlan.CollectionChanged += (o, e) => this.Map.RefreshWaypoints();
         }
 
         private void AddWaypoint_Click(object sender, RoutedEventArgs e)

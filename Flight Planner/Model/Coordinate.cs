@@ -12,14 +12,18 @@
             this.Latitude = coord.Latitude;
             this.Longitude = coord.Longitude;
             int d, m, s;
+            string sign;
             d = (int)coord.Latitude;
             m = (int)((coord.Latitude - d) * 60);
             s = (int)((coord.Latitude - d - m / 60) * 3600);
-            this.dmsLatitude=  string.Format("{0}°{1}'{2}\"", d, m, s);
+            sign = (d < 0) ? "S" : "N";
+            this.dmsLatitude= string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+
             d = (int)coord.Longitude;
             m = (int)((coord.Longitude - d) * 60);
             s = (int)((coord.Longitude - d - m / 60) * 3600);
-            this.dmsLongitude = string.Format("{0}°{1}'{2}\"", d, m, s);
+            sign = (d < 0) ? "W" : "E";
+            this.dmsLongitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
         }
 
         public Coordinate(decimal latitude, decimal longitude)
@@ -27,14 +31,17 @@
             this.Latitude = latitude;
             this.Longitude = longitude;
             int d, m, s;
+            string sign;
             d = (int)latitude;
             m = (int)((latitude - d) * 60);
             s = (int)((latitude - d - m / 60) * 3600);
-            this.dmsLatitude = string.Format("{0}°{1}'{2}\"", d, m, s);
+            sign = (d < 0) ? "S" : "N";
+            this.dmsLatitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
             d = (int)longitude;
             m = (int)((longitude - d) * 60);
             s = (int)((longitude - d - m / 60) * 3600);
-            this.dmsLongitude = string.Format("{0}°{1}'{2}\"", d, m, s);
+            sign = (d < 0) ? "W" : "E";
+            this.dmsLongitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
         }
 
         public override bool Equals(object obj)
@@ -67,16 +74,24 @@
 
         public override string ToString()
         {
-            return decimalToDMS(Latitude) + " " + decimalToDMS(Longitude);
+            return decimalToDMS(Latitude, Longitude);
         }
 
-        private string decimalToDMS(decimal degree)
+        private string decimalToDMS(decimal latitude, decimal longitude)
         {
             int d, m, s;
-            d = (int)degree;
-            m = (int)((degree - d) * 60);
-            s = (int)((degree - d - m / 60) * 3600);
-            return string.Format("{0}°{1}'{2}\"", d, m, s);
+            string sign;
+            d = (int)latitude;
+            m = (int)((latitude - d) * 60);
+            s = (int)((latitude - d - m / 60) * 3600);
+            sign = (d < 0) ? "S" : "N";
+            string lat = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            d = (int)longitude;
+            m = (int)((longitude - d) * 60);
+            s = (int)((longitude - d - m / 60) * 3600);
+            sign = (d < 0) ? "W" : "E";
+            string longi = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            return lat + " " + longi;
         }
     }
 }

@@ -40,6 +40,10 @@ namespace CIOSDigital.FlightPlanner.View
                 Coordinate c = new Coordinate(latitude, longitude);
                 this.ActivePlan.AppendWaypoint(new Waypoint(IDInput.Text, c));
             }
+            LatitudeInput.Clear();
+            LongitudeInput.Clear();
+            IDInput.Clear();
+            IDInput.Focus();
             Map.RefreshWaypoints();
         }
 
@@ -137,6 +141,14 @@ namespace CIOSDigital.FlightPlanner.View
             }
             this.ActivePlan = new FlightPlan();
             Map.RefreshWaypoints();
+        }
+
+        private void LongitudeInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter || e.Key == System.Windows.Input.Key.Return)
+            {
+                AddWaypoint_Click(sender, e);
+            }
         }
     }
 }

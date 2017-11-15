@@ -21,6 +21,7 @@ namespace CIOSDigital.FlightPlanner.View
         public Coordinate popupLoc { get; set; }
         private int movingPointIndex;
         private Boolean ismovingpoint;
+        private MouseButton lastButton;
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(WorldMap));
         public FlightPlan ActivePlan {
@@ -193,6 +194,7 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void Root_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("Mouse down");
             this.MousePosition = e.GetPosition(this);
             mousePoint = e.GetPosition(this);
             Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
@@ -204,10 +206,12 @@ namespace CIOSDigital.FlightPlanner.View
                 ismovingpoint = true;
                 movingPointIndex = ActivePlan.GetWaypointIndex(waypoint);
             }
+            lastButton = MouseButton.Left;
         }
 
         private void Root_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("Mouse up");
             if (ismovingpoint)
             {
                 ismovingpoint = false;
@@ -218,12 +222,7 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void Root_MouseMove(object sender, MouseEventArgs e)
         {
-            mousePoint = e.GetPosition(this);
-            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
-            mousePoint = modifiedMouse;
-            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
-
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && lastButton != MouseButton.Right)
             {
                 if (ismovingpoint)
                 {
@@ -232,6 +231,7 @@ namespace CIOSDigital.FlightPlanner.View
                 }
                 else
                 {
+                    Debug.WriteLine("moving");
                     Point previous = this.MousePosition;
                     this.MousePosition = e.GetPosition(this);
                     Vector delta = Point.Subtract(previous, this.MousePosition);
@@ -243,6 +243,10 @@ namespace CIOSDigital.FlightPlanner.View
                 //I really hate this... but its the only way I can get around WPF eating the mouse up event
                 Root_MouseUp(sender, e as MouseButtonEventArgs);
             }
+            mousePoint = e.GetPosition(this);
+            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
+            mousePoint = modifiedMouse;
+            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
         }
 
         private void PerformScrollBy(Vector delta)
@@ -391,6 +395,7 @@ namespace CIOSDigital.FlightPlanner.View
 
             contextMenu.PlacementTarget = sender as Button;
             contextMenu.IsOpen = true;
+            lastButton = MouseButton.Right;
         }
 
         Point distance(Coordinate one, Coordinate two)
@@ -441,11 +446,6 @@ namespace CIOSDigital.FlightPlanner.View
 
             }
             return waypoint;
-        }
-
-        private void Picture_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            Debug.WriteLine("testing");
         }
     }
 }

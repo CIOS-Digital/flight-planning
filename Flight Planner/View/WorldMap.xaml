@@ -7,7 +7,11 @@
              mc:Ignorable="d"
              d:DesignHeight="640" d:DesignWidth="800"
              Name="Root"
-             SizeChanged="Root_SizeChanged">
+             SizeChanged="Root_SizeChanged"
+             MouseMove="Root_MouseMove"
+             MouseRightButtonUp="Picture_MouseRightButtonUp"
+             MouseLeftButtonUp="Root_MouseUp"
+             MouseLeftButtonDown="Root_MouseDown">
     <!--     MouseWheel="Root_MouseWheel" -->
     <Grid Background="Gray">
         <Grid.ColumnDefinitions>
@@ -21,11 +25,7 @@
         </Grid.RowDefinitions>
         <Canvas Name="Picture"
                 Grid.Row="0" Grid.RowSpan="2"
-                Grid.Column="0" Grid.ColumnSpan="3"
-              MouseMove="Root_MouseMove"
-
-             MouseRightButtonUp="Picture_MouseRightButtonUp"
-             MouseLeftButtonUp="Root_MouseUp" MouseLeftButtonDown="Root_MouseDown" PreviewMouseLeftButtonUp="Picture_PreviewMouseLeftButtonUp"/>
+                Grid.Column="0" Grid.ColumnSpan="3"/>
 
 
         <local:MapTypeSelector x:Name="TypeSelector"

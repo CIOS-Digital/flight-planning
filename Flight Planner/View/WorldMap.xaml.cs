@@ -383,6 +383,14 @@ namespace CIOSDigital.FlightPlanner.View
                 delWaypoint.IsEnabled = true;
             contextMenu.Items.Add(delWaypoint);
 
+            MenuItem modWaypoint = new MenuItem();
+            modWaypoint.Header = "Modify Waypoint ID";
+            modWaypoint.Click += delegate { ModifyWaypoint(waypoint); };
+            modWaypoint.IsEnabled = false;
+            if (waypoint.id != null)
+                modWaypoint.IsEnabled = true;
+            contextMenu.Items.Add(modWaypoint);
+
             MenuItem addWaypoint = new MenuItem();
             addWaypoint.Header = "Add Waypoint";
             addWaypoint.Click += delegate { AddWaypoint(null); };
@@ -426,6 +434,16 @@ namespace CIOSDigital.FlightPlanner.View
         {
             this.ActivePlan.RemoveWaypoint(w);
             RefreshWaypoints();
+        }
+
+        private void ModifyWaypoint(Waypoint w)
+        {
+            var dialog = new PopupText(mousePoint);
+            dialog.ResponseTextBox.Focus();
+            dialog.ShowDialog();
+                ActivePlan.ModifyWaypoint(ActivePlan.GetWaypointIndex(w), dialog.ResponseText);
+            
+
         }
 
         private Waypoint nearWaypoint(Coordinate coord)

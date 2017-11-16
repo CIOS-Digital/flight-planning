@@ -28,14 +28,21 @@ namespace CIOSDigital.FlightPlanner.Model
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
+        public void ModifyWaypoint(int windex, String id)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(id, Waypoints[windex].coordinate);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+        }
+
         public void ModifyWaypoint(int windex, Coordinate coord)
         {
             if (windex >= 0)
             {
                 Waypoints[windex] = new Waypoint(Waypoints[windex].id, coord);
                 CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                //                this.Waypoints.Insert(temp, new Waypoint(w.id, coord));
-                //              this.Waypoints.Remove(w);
             }
         }
 

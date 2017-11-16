@@ -1,6 +1,9 @@
 ﻿using CIOSDigital.FlightPlanner.Model;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CIOSDigital.FlightPlanner.View
 {
@@ -21,9 +24,14 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void DeleteSelectedClick(object sender, RoutedEventArgs e)
         {
-            if (this.Table.SelectedItem != null)
+            List<Waypoint> toDeleteList = new List<Waypoint>();
+            foreach (Waypoint item in This.Table.SelectedItems)
             {
-                ActivePlan.RemoveWaypoint((Waypoint)this.Table.SelectedItem);
+                toDeleteList.Add(item);
+            }
+            foreach (Waypoint item in toDeleteList)
+            {
+                ActivePlan.RemoveWaypoint(item);
             }
         }
 

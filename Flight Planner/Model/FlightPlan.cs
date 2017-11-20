@@ -46,6 +46,16 @@ namespace CIOSDigital.FlightPlanner.Model
             }
         }
 
+        public void ModifyWaypoint(int windex, String id, Coordinate coord)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(id, coord);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+        }
+
+
         public int GetWaypointIndex(Waypoint w)
         {
             return Waypoints.IndexOf(w);

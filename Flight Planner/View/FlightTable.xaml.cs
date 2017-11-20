@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace CIOSDigital.FlightPlanner.View
 {
@@ -77,7 +78,30 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void ModifySelectedClick(object sender, RoutedEventArgs e)
         {
+            List<Waypoint> ModList = new List<Waypoint>();
+            foreach (Waypoint item in this.Table.SelectedItems)
+            {
+                ModList.Add(item);
+            }
+            foreach (Waypoint item in ModList)
+            {
+                int windex = ActivePlan.GetWaypointIndex(item);
+                var dialog = new PopupText();
+                dialog.okButton.Content = "Modify";
+                dialog.IDInput.Text = item.id;
+                dialog.LatitudeInput.Text = item.coordinate.Latitude.ToString();
+                dialog.LongitudeInput.Text = item.coordinate.Longitude.ToString();
 
+                if (dialog.ShowDialog() == true)
+                {
+                    if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
+    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                    {
+                        Coordinate c = new Coordinate(latitude, longitude);
+                        this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                    }
+                }
+            }
         }
     }
 }

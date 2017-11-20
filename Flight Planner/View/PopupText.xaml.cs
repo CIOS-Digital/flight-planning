@@ -19,15 +19,30 @@ namespace CIOSDigital.FlightPlanner.View
     /// </summary>
     public partial class PopupText : Window
     {
-        public PopupText(Point pt)
+        public PopupText()
         {
+            App.Current.MainWindow.Opacity = 0.7;
             InitializeComponent();
+            IDInput.Focus();
+            IDInput.SelectAll();
         }
 
-        public String ResponseText
+        public String IDText
         {
-            get { return ResponseTextBox.Text; }
-            set { ResponseTextBox.Text = value; }
+            get { return IDInput.Text; }
+            set { IDInput.Text = value; }
+        }
+
+        public String LatitudeText
+        {
+            get { return LatitudeInput.Text; }
+            set { LatitudeInput.Text = value; }
+        }
+
+        public String LongitudeText
+        {
+            get { return LongitudeInput.Text; }
+            set { LongitudeInput.Text = value; }
         }
 
         private void OkButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -40,7 +55,7 @@ namespace CIOSDigital.FlightPlanner.View
             DialogResult = false;
         }
 
-        private void ResponseTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void Input_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Return)
             {
@@ -52,6 +67,11 @@ namespace CIOSDigital.FlightPlanner.View
                 e.Handled = true;
                 DialogResult = false;
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            App.Current.MainWindow.Opacity = 1;
         }
     }
 }

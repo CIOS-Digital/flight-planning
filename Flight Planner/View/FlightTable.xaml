@@ -14,11 +14,23 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
         <Button x:Name="DelButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="0"
-                Content="D" Click="DeleteSelectedClick" ToolTipService.IsEnabled="True">
+               Click="DeleteSelectedClick" ToolTipService.IsEnabled="True">
+            <Image Source="/Resources/Cancel.png">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
             <Button.ToolTip>
                 <StackPanel>
                     <TextBlock FontWeight="Bold">Delete Selected Waypoints</TextBlock>
@@ -27,17 +39,39 @@
         </Button>
 
         <Button x:Name="ModButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="1"
-                Content="M" Click="ModifySelectedClick" ToolTipService.IsEnabled="True">
+                Click="ModifySelectedClick" ToolTipService.IsEnabled="True">
+            <Image Source="/Resources/Edit.png">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
             <Button.ToolTip>
                 <StackPanel>
-                    <TextBlock FontWeight="Bold">Delete Selected Waypoints</TextBlock>
+                    <TextBlock FontWeight="Bold">Modify Selected Waypoints</TextBlock>
                 </StackPanel>
             </Button.ToolTip>
         </Button>
 
 
         <Button x:Name="UpButton" Grid.Row="0" Grid.Column="2"
-                Content="U" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+            <Image Source="/Resources/Up.png" Height="20" >
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
             <Button.ToolTip>
                <StackPanel>
                     <TextBlock FontWeight="Bold">Move Selected Waypoints Up</TextBlock>
@@ -45,7 +79,18 @@
             </Button.ToolTip>
         </Button>
         <Button x:Name="DownButton" Grid.Row="0" Grid.Column="3"
-                Content="D" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+            <Image Source="/Resources/Down.png" Height="20">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
             <Button.ToolTip>
                 <StackPanel>
                     <TextBlock FontWeight="Bold">Move Selected Waypoints Down</TextBlock>

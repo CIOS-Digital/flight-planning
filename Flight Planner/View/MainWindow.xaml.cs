@@ -15,15 +15,17 @@ namespace CIOSDigital.FlightPlanner.View
 
         public FlightPlan ActivePlan {
             get => this.GetValue(ActivePlanProperty) as FlightPlan;
-            set => this.SetValue(ActivePlanProperty, value);
+            set {
+                this.SetValue(ActivePlanProperty, value);
+                value.CollectionChanged += (o, e) =>
+                    this.Map.RefreshWaypoints();
+            }
         }
 
         public MainWindow()
         {
             InitializeComponent();
             this.ActivePlan = new FlightPlan();
-            // this.ActivePlan.CollectionChanged += (o, e) => this.FlightTable.Refresh();
-            this.ActivePlan.CollectionChanged += (o, e) => this.Map.RefreshWaypoints();
         }
 
         private void AddWaypoint_Click(object sender, RoutedEventArgs e)
@@ -38,33 +40,42 @@ namespace CIOSDigital.FlightPlanner.View
                 Coordinate c = new Coordinate(latitude, longitude);
                 this.ActivePlan.AppendWaypoint(new Waypoint(IDInput.Text, c));
             }
+            LatitudeInput.Clear();
+            LongitudeInput.Clear();
+            IDInput.Clear();
+            IDInput.Focus();
             Map.RefreshWaypoints();
         }
 
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Store the currently opened file path, if any
-            SaveFileDialog dlg = new SaveFileDialog()
+            SavePlan(false);
+        }
+
+
+        private void SaveAsItem_Click(object sender, RoutedEventArgs e)
+        {
+            SavePlan(true);
+        }
+
+        private bool PromptSave()
+        {
+            if (this.ActivePlan.IsModified())
             {
-                DefaultExt = ".fpl",
-                Filter = "Flight Plan Files (*.fpl)|*.fpl",
-            };
-            bool fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
-            if (fileSelected)
-            {
-                string filename = dlg.FileName;
-                using (StreamWriter writer = new StreamWriter(new FileStream(filename, FileMode.Create, FileAccess.Write), Encoding.UTF8))
-                {
-                    // HACK: The flight plan index needs to be calculated or stored somewhere, not a constant.
-                    this.ActivePlan.FplWrite(writer, 1);
-                }
+                //This message is ugly
+                MessageBoxResult messageBoxResult = MessageBox.Show("File has been modified since last save", "would you like to save first?", MessageBoxButton.YesNoCancel);
+                if (messageBoxResult == MessageBoxResult.Cancel)
+                    return false;
+                if (messageBoxResult == MessageBoxResult.Yes)
+                    SavePlan(false);
             }
+            return true;
         }
 
         private void OpenItem_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Proper metric to check for unsaved changes.
-
+            if (!PromptSave())
+                return;
             OpenFileDialog dlg = new OpenFileDialog()
             {
                 DefaultExt = ".fpl",
@@ -79,6 +90,64 @@ namespace CIOSDigital.FlightPlanner.View
                 fplDocument.Load(filename);
                 this.ActivePlan = FlightPlan.FplRead(fplDocument);
                 Map.RefreshWaypoints();
+            }
+        }
+
+        private void Quit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void This_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!PromptSave())
+            {
+                e.Cancel = true;
+            }
+        }
+
+        void SavePlan(bool saveNew)
+        {
+            string filename = this.ActivePlan.filename;
+            bool fileSelected = true;
+            if (saveNew || String.IsNullOrEmpty(filename))
+            {
+                SaveFileDialog dlg = new SaveFileDialog()
+                {
+                    DefaultExt = ".fpl",
+                    Filter = "Flight Plan Files (*.fpl)|*.fpl",
+                };
+                fileSelected = dlg.ShowDialog(this).GetValueOrDefault(false);
+                this.ActivePlan.filename = dlg.FileName;
+                filename = dlg.FileName;
+            }
+
+            if (fileSelected)
+            {
+                this.ActivePlan.DuplicateWaypoints();
+                using (StreamWriter writer = new StreamWriter(new FileStream(filename, FileMode.Create, FileAccess.Write), Encoding.UTF8))
+                {
+                    // HACK: The flight plan index needs to be calculated or stored somewhere, not a constant.
+                    this.ActivePlan.FplWrite(writer, 1);
+                }
+            }
+        }
+
+        private void NewItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!PromptSave())
+            {
+                return;
+            }
+            this.ActivePlan = new FlightPlan();
+            Map.RefreshWaypoints();
+        }
+
+        private void LongitudeInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter || e.Key == System.Windows.Input.Key.Return)
+            {
+                AddWaypoint_Click(sender, e);
             }
         }
     }

@@ -2,12 +2,17 @@
 {
     public struct Waypoint
     {
-        public Coordinate coordinate { get; }
+        public Coordinate coordinate { get; set; }
         public string id { get; }
 
         public Waypoint(string id, Coordinate coord)
         {
             this.id = id;
+            this.coordinate = coord;
+        }
+
+        public void UpdateCoordinate(Coordinate coord)
+        {
             this.coordinate = coord;
         }
 

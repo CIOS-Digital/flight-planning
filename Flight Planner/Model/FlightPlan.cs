@@ -4,24 +4,60 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Xml;
+using System.Linq;
 
 namespace CIOSDigital.FlightPlanner.Model
 {
     public class FlightPlan : IEnumerable<Waypoint>, INotifyCollectionChanged
     {
         private readonly List<Waypoint> Waypoints;
+        protected List<Waypoint> originalWaypoints;
+        public string filename;
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         public FlightPlan()
         {
             Waypoints = new List<Waypoint>();
+            originalWaypoints = new List<Waypoint>();
         }
 
         public void AppendWaypoint(Waypoint w)
         {
             this.Waypoints.Add(w);
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+
+        public void ModifyWaypoint(int windex, Coordinate coord)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(Waypoints[windex].id, coord);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                //                this.Waypoints.Insert(temp, new Waypoint(w.id, coord));
+                //              this.Waypoints.Remove(w);
+            }
+        }
+
+        public int GetWaypointIndex(Waypoint w)
+        {
+            return Waypoints.IndexOf(w);
+        }
+
+        public void DuplicateWaypoints()
+        {
+            originalWaypoints = new List<Waypoint>(Waypoints);
+        }
+
+        public void RemoveWaypoint(Waypoint w)
+        {
+            Waypoints.Remove(w);
+            CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+
+        public bool IsModified()
+        {
+            return !((this.originalWaypoints.Count == this.Waypoints.Count) && !this.originalWaypoints.Except(this.Waypoints).Any());
         }
 
         public IEnumerator<Waypoint> GetEnumerator() => Waypoints.GetEnumerator();
@@ -83,7 +119,7 @@ namespace CIOSDigital.FlightPlanner.Model
         public static FlightPlan FplRead(XmlDocument document)
         {
             FlightPlan plan = new FlightPlan();
-
+            plan.filename = new Uri(document.BaseURI).LocalPath;
             XmlNamespaceManager mgr = new XmlNamespaceManager(document.NameTable);
             mgr.AddNamespace("wpns", document.DocumentElement.NamespaceURI);
             XmlNodeList nodes = document.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
@@ -108,8 +144,36 @@ namespace CIOSDigital.FlightPlanner.Model
                     plan.AppendWaypoint(new Waypoint(ident, c));
                 }
             }
-
+            plan.DuplicateWaypoints();
             return plan;
+        }
+        public void Move(Waypoint w, Direction d)
+        {
+            var old = this.Waypoints.IndexOf(w);
+            
+            switch (d)
+            {
+                case (Direction.Up):
+                    {
+                        if (old != 0)
+                        {
+                            this.Waypoints.RemoveAt(old);
+                            this.Waypoints.Insert(old - 1, w);
+                        }
+                            break;
+                        
+                    }
+                case (Direction.Down):
+                    {
+                        if (old != this.Waypoints.Count-1)
+                        {
+                            this.Waypoints.RemoveAt(old);
+                            this.Waypoints.Insert(old + 1, w);
+                        }
+                        break;
+                    }
+            }
+            CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
     }
 }

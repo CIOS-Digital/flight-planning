@@ -5,36 +5,110 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="200">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button Grid.Row="0" Grid.Column="0"
-                Content="Delete" IsEnabled="{Binding Items.Count, ElementName=Table}" Click="DeleteSelectedClick">
+
+        <Button x:Name="DelButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="0"
+               Click="DeleteSelectedClick" ToolTipService.IsEnabled="True">
+            <Image Source="/Resources/Cancel.png">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Button.ToolTip>
+                <StackPanel>
+                    <TextBlock FontWeight="Bold">Delete Selected Waypoints</TextBlock>
+                </StackPanel>
+            </Button.ToolTip>
         </Button>
-        <Button Grid.Row="0" Grid.Column="1"
-                Content="Move Up" IsEnabled="{Binding Items.Count, ElementName=Table}" Click="MoveSelectedUpClick"/>
-        <Button Grid.Row="0" Grid.Column="2"
-                Content="Move Down" IsEnabled="{Binding Items.Count, ElementName=Table}" Click="MoveSelectedDownClick"/>
+
+        <Button x:Name="ModButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="1"
+                Click="ModifySelectedClick" ToolTipService.IsEnabled="True">
+            <Image Source="/Resources/Edit.png">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Button.ToolTip>
+                <StackPanel>
+                    <TextBlock FontWeight="Bold">Modify Selected Waypoints</TextBlock>
+                </StackPanel>
+            </Button.ToolTip>
+        </Button>
+
+
+        <Button x:Name="UpButton" Grid.Row="0" Grid.Column="2"
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+            <Image Source="/Resources/Up.png" Height="20" >
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Button.ToolTip>
+               <StackPanel>
+                    <TextBlock FontWeight="Bold">Move Selected Waypoints Up</TextBlock>
+               </StackPanel>
+            </Button.ToolTip>
+        </Button>
+        <Button x:Name="DownButton" Grid.Row="0" Grid.Column="3"
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+            <Image Source="/Resources/Down.png" Height="20">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Style.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Button.ToolTip>
+                <StackPanel>
+                    <TextBlock FontWeight="Bold">Move Selected Waypoints Down</TextBlock>
+                </StackPanel>
+            </Button.ToolTip>
+        </Button>
         <DataGrid x:Name="Table"
                   Grid.Row="1" Grid.Column="0"
-                  Grid.RowSpan="1" Grid.ColumnSpan="3"
+                  Grid.RowSpan="1" Grid.ColumnSpan="4"
                   VerticalAlignment="Stretch"
                   RowHeight="20" IsReadOnly="True"
                   AutoGenerateColumns="False"
                   CanUserSortColumns="False"
-                  ItemsSource="{Binding ElementName=This, Path=ActivePlan}">
+                  ItemsSource="{Binding ElementName=This, Path=ActivePlan}" CanUserResizeColumns="False" CanUserReorderColumns="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Path=id}" />
-                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=coordinate.dmsLatitude}" />
-                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=coordinate.dmsLongitude}" />
+                <DataGridTextColumn Header="ID" Binding="{Binding Path=id}" Width="40"/>
+                <DataGridTextColumn Header="Latitude" Binding="{Binding Path=coordinate.dmsLatitude}" Width="78"/>
+                <DataGridTextColumn Header="Longitude" Binding="{Binding Path=coordinate.dmsLongitude}" Width="78"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

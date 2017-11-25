@@ -28,16 +28,33 @@ namespace CIOSDigital.FlightPlanner.Model
             CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
+        public void ModifyWaypoint(int windex, String id)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(id, Waypoints[windex].coordinate);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+        }
+
         public void ModifyWaypoint(int windex, Coordinate coord)
         {
             if (windex >= 0)
             {
                 Waypoints[windex] = new Waypoint(Waypoints[windex].id, coord);
                 CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                //                this.Waypoints.Insert(temp, new Waypoint(w.id, coord));
-                //              this.Waypoints.Remove(w);
             }
         }
+
+        public void ModifyWaypoint(int windex, String id, Coordinate coord)
+        {
+            if (windex >= 0)
+            {
+                Waypoints[windex] = new Waypoint(id, coord);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+        }
+
 
         public int GetWaypointIndex(Waypoint w)
         {
@@ -116,11 +133,12 @@ namespace CIOSDigital.FlightPlanner.Model
         }
 
 
-        public static FlightPlan FplRead(XmlDocument document)
-        {
-            FlightPlan plan = new FlightPlan();
+        public static int FplRead(XmlDocument document, FlightPlan plan)        {
+
             plan.filename = new Uri(document.BaseURI).LocalPath;
-            XmlNamespaceManager mgr = new XmlNamespaceManager(document.NameTable);
+            try
+            {
+                XmlNamespaceManager mgr = new XmlNamespaceManager(document.NameTable);
             mgr.AddNamespace("wpns", document.DocumentElement.NamespaceURI);
             XmlNodeList nodes = document.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
 
@@ -136,16 +154,20 @@ namespace CIOSDigital.FlightPlanner.Model
             }
 
             XmlNodeList routes = document.DocumentElement.SelectNodes("//wpns:route-point", mgr);
-            foreach (XmlNode n in routes)
-            {
-                string ident = n.SelectSingleNode("wpns:waypoint-identifier", mgr).InnerText;
-                if (idToCoordinate.TryGetValue(ident, out Coordinate c))
+
+                foreach (XmlNode n in routes)
                 {
-                    plan.AppendWaypoint(new Waypoint(ident, c));
+                    string ident = n.SelectSingleNode("wpns:waypoint-identifier", mgr).InnerText;
+                    if (idToCoordinate.TryGetValue(ident, out Coordinate c))
+                    {
+                        plan.AppendWaypoint(new Waypoint(ident, c));
+                    }
                 }
+            } catch (NullReferenceException) {
+                return -1;
             }
             plan.DuplicateWaypoints();
-            return plan;
+            return 0;
         }
         public void Move(Waypoint w, Direction d)
         {

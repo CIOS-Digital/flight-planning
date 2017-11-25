@@ -88,8 +88,12 @@ namespace CIOSDigital.FlightPlanner.View
                 string filename = dlg.FileName;
                 XmlDocument fplDocument = new XmlDocument();
                 fplDocument.Load(filename);
-                this.ActivePlan = FlightPlan.FplRead(fplDocument);
-                Map.RefreshWaypoints();
+                this.ActivePlan = new FlightPlan();
+                int result = FlightPlan.FplRead(fplDocument, this.ActivePlan);
+                if (result < 0)
+                    MessageBox.Show("Failed to parse flight plan");
+                else
+                    Map.RefreshWaypoints();
             }
         }
 

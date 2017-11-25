@@ -1,6 +1,10 @@
 ﻿using CIOSDigital.FlightPlanner.Model;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace CIOSDigital.FlightPlanner.View
 {
@@ -21,24 +25,82 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void DeleteSelectedClick(object sender, RoutedEventArgs e)
         {
-            if (this.Table.SelectedItem != null)
+            List<Waypoint> toDeleteList = new List<Waypoint>();
+            foreach (Waypoint item in this.Table.SelectedItems)
             {
-                ActivePlan.RemoveWaypoint((Waypoint)this.Table.SelectedItem);
+                toDeleteList.Add(item);
+            }
+            foreach (Waypoint item in toDeleteList)
+            {
+                ActivePlan.RemoveWaypoint(item);
             }
         }
 
-        private void MoveSelectedUpClick(object sender, RoutedEventArgs e)
+
+        //This looks bad.... but it works?
+        private void MoveSelectedClick(object sender, RoutedEventArgs e)
         {
-            if (this.Table.SelectedItem != null)
+            Direction dir;
+            bool reversed;
+            if (sender.Equals(DownButton))
             {
-                this.ActivePlan.Move((Waypoint)this.Table.SelectedItem, Direction.Up);
+                reversed = true;
+                dir = Direction.Down;
+            } else {
+                reversed = false;
+                dir = Direction.Up;
+            }
+
+            int count = this.Table.SelectedItems.Count;
+
+            if (count > 1)
+            {
+                if (ActivePlan.GetWaypointIndex((Waypoint)this.Table.SelectedItems[0]) > ActivePlan.GetWaypointIndex((Waypoint)this.Table.SelectedItems[1]))
+                {
+                    reversed = !reversed;
+                }
+            }
+            if (reversed)
+            {
+                for(int i = count-1; i >= 0; i--)
+                {
+                    this.ActivePlan.Move((Waypoint)this.Table.SelectedItems[i], dir);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    this.ActivePlan.Move((Waypoint)this.Table.SelectedItems[i], dir);
+                }
             }
         }
-        private void MoveSelectedDownClick(object sender, RoutedEventArgs e)
+
+        private void ModifySelectedClick(object sender, RoutedEventArgs e)
         {
-            if (this.Table.SelectedItem != null)
+            List<Waypoint> ModList = new List<Waypoint>();
+            foreach (Waypoint item in this.Table.SelectedItems)
             {
-                this.ActivePlan.Move((Waypoint)this.Table.SelectedItem, Direction.Down);
+                ModList.Add(item);
+            }
+            foreach (Waypoint item in ModList)
+            {
+                int windex = ActivePlan.GetWaypointIndex(item);
+                var dialog = new PopupText();
+                dialog.okButton.Content = "Modify";
+                dialog.IDInput.Text = item.id;
+                dialog.LatitudeInput.Text = item.coordinate.Latitude.ToString();
+                dialog.LongitudeInput.Text = item.coordinate.Longitude.ToString();
+
+                if (dialog.ShowDialog() == true)
+                {
+                    if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
+    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                    {
+                        Coordinate c = new Coordinate(latitude, longitude);
+                        this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                    }
+                }
             }
         }
     }

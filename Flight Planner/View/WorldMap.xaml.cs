@@ -383,6 +383,14 @@ namespace CIOSDigital.FlightPlanner.View
                 delWaypoint.IsEnabled = true;
             contextMenu.Items.Add(delWaypoint);
 
+            MenuItem modWaypoint = new MenuItem();
+            modWaypoint.Header = "Modify Waypoint ID";
+            modWaypoint.Click += delegate { ModifyWaypoint(waypoint); };
+            modWaypoint.IsEnabled = false;
+            if (waypoint.id != null)
+                modWaypoint.IsEnabled = true;
+            contextMenu.Items.Add(modWaypoint);
+
             MenuItem addWaypoint = new MenuItem();
             addWaypoint.Header = "Add Waypoint";
             addWaypoint.Click += delegate { AddWaypoint(null); };
@@ -409,11 +417,13 @@ namespace CIOSDigital.FlightPlanner.View
         private void AddWaypoint(String id)
         {
             if (String.IsNullOrEmpty(id)) {
-                var dialog = new PopupText(mousePoint);
-                dialog.ResponseTextBox.Focus();
+                var dialog = new PopupText();
+                dialog.okButton.Content = "Add";
+                dialog.LatitudeInput.Text = popupLoc.Latitude.ToString();
+                dialog.LongitudeInput.Text = popupLoc.Longitude.ToString();
                 if (dialog.ShowDialog() == true)
                 {
-                    this.ActivePlan.AppendWaypoint(new Waypoint(dialog.ResponseText, popupLoc));
+                    this.ActivePlan.AppendWaypoint(new Waypoint(dialog.IDInput.Text, popupLoc));
                 }
             } else
             {
@@ -426,6 +436,25 @@ namespace CIOSDigital.FlightPlanner.View
         {
             this.ActivePlan.RemoveWaypoint(w);
             RefreshWaypoints();
+        }
+
+        private void ModifyWaypoint(Waypoint w)
+        {
+            int windex = ActivePlan.GetWaypointIndex(w);
+            var dialog = new PopupText();
+            dialog.okButton.Content = "Modify";
+            dialog.IDInput.Text = w.id;
+            dialog.LatitudeInput.Text = w.coordinate.Latitude.ToString();
+            dialog.LongitudeInput.Text = w.coordinate.Longitude.ToString();
+            if (dialog.ShowDialog() == true)
+            {
+                if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
+                    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                {
+                    Coordinate c = new Coordinate(latitude, longitude);
+                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                }
+            }
         }
 
         private Waypoint nearWaypoint(Coordinate coord)

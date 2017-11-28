@@ -9,13 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace CIOSDigital.FlightPlanner.Database
 {
     public class SQLiteMap : IMapProvider
     {
         private const string API_KEY = "AIzaSyAqKdnHyxbEm1dFI6xX5Lx0TgOEbRuJ2CE";
-        private const uint MAX_DOWNLOADS = 8;
+        private const uint MAX_DOWNLOADS = 16;
 
         private static SQLiteMap instance = null;
         public static SQLiteMap Instance {
@@ -26,7 +27,7 @@ namespace CIOSDigital.FlightPlanner.Database
         }
 
         private SQLiteConnection DbConnection { get; }
-        
+
         private List<TileSpecifier> SleepingDownloads { get; }
         private HashSet<TileSpecifier> CurrentDownloads { get; }
         private Dictionary<TileSpecifier, Task<ImageSource>> Cache { get; }
@@ -45,7 +46,7 @@ namespace CIOSDigital.FlightPlanner.Database
         {
             lock (SleepingDownloads)
             {
-                return SleepingDownloads.Last() == specifier;
+                return specifier.IsEqualTo(SleepingDownloads.Last());
             }
         }
 
@@ -140,19 +141,19 @@ namespace CIOSDigital.FlightPlanner.Database
             Cache.Add(specifier, task);
             return await task;
         }
-        
+
         private async Task<ImageSource> GetImageAsyncImpl(TileSpecifier specifier)
         {
             byte[] image = await GetCachedImageAsync(specifier);
             if (image == null)
             {
                 EnqueueTile(specifier);
-                while (GetCountDownloading() >= MAX_DOWNLOADS && IsTileNext(specifier))
+                while (GetCountDownloading() >= MAX_DOWNLOADS || !IsTileNext(specifier))
                 {
-                    await Task.Delay(new TimeSpan(10000));
+                    await Task.Delay(500);
                 }
-                DequeueTile(specifier);
                 SetTileDownloading(specifier);
+                DequeueTile(specifier);
                 Task<byte[]> downloadedImage = DownloadImageAsync(specifier);
                 CacheImageAsync(specifier, await downloadedImage);
                 image = await downloadedImage;

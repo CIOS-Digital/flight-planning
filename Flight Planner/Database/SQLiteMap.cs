@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 using System.Net;
@@ -6,31 +8,107 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Collections.Concurrent;
 
 namespace CIOSDigital.FlightPlanner.Database
 {
     public class SQLiteMap : IMapProvider
     {
         private const string API_KEY = "AIzaSyAqKdnHyxbEm1dFI6xX5Lx0TgOEbRuJ2CE";
+        private const uint MAX_DOWNLOADS = 8;
 
-        private SQLiteConnection Connection { get; }
+        private static SQLiteMap instance = null;
+        public static SQLiteMap Instance {
+            get {
+                instance = instance ?? new SQLiteMap();
+                return instance;
+            }
+        }
+
+        private SQLiteConnection DbConnection { get; }
+        
+        private List<TileSpecifier> SleepingDownloads { get; }
+        private HashSet<TileSpecifier> CurrentDownloads { get; }
+        private Dictionary<TileSpecifier, Task<ImageSource>> Cache { get; }
 
         private SQLiteMap()
         {
-            Connection = OpenAppDataDBConnection();
+            SleepingDownloads = new List<TileSpecifier>();
+            CurrentDownloads = new HashSet<TileSpecifier>();
+            Cache = new Dictionary<TileSpecifier, Task<ImageSource>>();
+
+            DbConnection = OpenDbConnection();
             InitializeDBTable();
         }
 
-        public static SQLiteMap OpenDB()
+        private bool IsTileNext(TileSpecifier specifier)
         {
-            return new SQLiteMap();
+            lock (SleepingDownloads)
+            {
+                return SleepingDownloads.Last() == specifier;
+            }
         }
 
-        private static SQLiteConnection OpenAppDataDBConnection()
+        private void EnqueueTile(TileSpecifier specifier)
+        {
+            lock (SleepingDownloads)
+            {
+                SleepingDownloads.Add(specifier);
+            }
+        }
+
+        private void RequeueTile(TileSpecifier specifier)
+        {
+            lock (SleepingDownloads)
+            {
+                if (SleepingDownloads.Contains(specifier))
+                {
+                    SleepingDownloads.Remove(specifier);
+                    SleepingDownloads.Add(specifier);
+                }
+            }
+        }
+
+        private void DequeueTile(TileSpecifier specifier)
+        {
+            lock (SleepingDownloads)
+            {
+                if (SleepingDownloads.Contains(specifier))
+                {
+                    SleepingDownloads.Remove(specifier);
+                }
+            }
+        }
+
+        private int GetCountDownloading()
+        {
+            lock (CurrentDownloads)
+            {
+                return CurrentDownloads.Count;
+            }
+        }
+
+        private void SetTileDownloading(TileSpecifier specifier)
+        {
+            lock (CurrentDownloads)
+            {
+                CurrentDownloads.Add(specifier);
+            }
+        }
+
+        private void SetTileFinishedDownloading(TileSpecifier specifier)
+        {
+            lock (CurrentDownloads)
+            {
+                CurrentDownloads.Remove(specifier);
+            }
+        }
+
+        private static SQLiteConnection OpenDbConnection()
         {
             SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
             const string filePath = "cios-digital/mapdb.sqlite3";
-            string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             string canonicalPath = Path.Combine(folderPath, filePath);
             builder.Uri = "file://" + canonicalPath;
             Directory.CreateDirectory(Path.GetDirectoryName(canonicalPath));
@@ -39,42 +117,46 @@ namespace CIOSDigital.FlightPlanner.Database
 
         private void InitializeDBTable()
         {
-            const string sql = ""
-                + "CREATE TABLE IF NOT EXISTS Images ("
-                + "    Latitude  REAL NOT NULL,"
-                + "    Longitude REAL NOT NULL,"
-                + "    Width  INTEGER NOT NULL,"
-                + "    Height INTEGER NOT NULL,"
-                + "    Zoom REAL NOT NULL,"
-                + "    MapType TEXT NOT NULL,"
-                + "    PngData    BLOB NOT NULL,"
-                + "    PngDataLen INTEGER NOT NULL,"
-                + "    PRIMARY KEY(Latitude, Longitude, Width, Height, Zoom, MapType)"
-                + ");";
-            lock (Connection)
+            using (SQLiteCommand command = new SQLiteCommand(SqlStrings.CREATE_TABLE, DbConnection))
             {
-                using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
-                {
-                    new SQLiteCommand("BEGIN TRANSACTION;", Connection).ExecuteNonQuery();
-                    command.ExecuteNonQuery();
-                    new SQLiteCommand("END TRANSACTION;", Connection).ExecuteNonQuery();
-                }
+                command.ExecuteNonQuery();
             }
         }
 
-        public async Task<ImageSource> GetImageAsync(TileSpecifier spec)
+        public async Task<ImageSource> GetImageAsync(TileSpecifier specifier)
         {
-            if (Math.Abs(spec.Coordinate.Latitude) > 70 || Math.Abs(spec.Coordinate.Longitude) > 180)
+            if (!specifier.IsValidCoordinate())
             {
                 return null;
             }
 
-            byte[] image = await GetCachedImageAsync(spec);
+            if (Cache.ContainsKey(specifier))
+            {
+                RequeueTile(specifier);
+                return await Cache[specifier];
+            }
+
+            Task<ImageSource> task = GetImageAsyncImpl(specifier);
+            Cache.Add(specifier, task);
+            return await task;
+        }
+        
+        private async Task<ImageSource> GetImageAsyncImpl(TileSpecifier specifier)
+        {
+            byte[] image = await GetCachedImageAsync(specifier);
             if (image == null)
             {
-                Task<byte[]> downloadedImage = DownloadImageAsync(spec);
-                CacheImageAsync(spec, await downloadedImage);
+                EnqueueTile(specifier);
+                while (GetCountDownloading() >= MAX_DOWNLOADS && IsTileNext(specifier))
+                {
+                    await Task.Delay(new TimeSpan(10000));
+                }
+                DequeueTile(specifier);
+                SetTileDownloading(specifier);
+                Task<byte[]> downloadedImage = DownloadImageAsync(specifier);
+                CacheImageAsync(specifier, await downloadedImage);
                 image = await downloadedImage;
+                SetTileFinishedDownloading(specifier);
             }
 
             MemoryStream imageStream = new MemoryStream(image);
@@ -93,21 +175,15 @@ namespace CIOSDigital.FlightPlanner.Database
             uriBuilder.AppendFormat("&maptype={0}", spec.MapType.ToString().ToLower());
             uriBuilder.AppendFormat("&size={0}x{1}", spec.Size.Width, spec.Size.Height);
             uriBuilder.AppendFormat("&zoom={0}", spec.Zoom);
-            return await new WebClient().DownloadDataTaskAsync(uriBuilder.ToString());
+            var client = new WebClient();
+            var data = client.DownloadDataTaskAsync(uriBuilder.ToString());
+            return await data;
         }
 
         private async Task<byte[]> GetCachedImageAsync(TileSpecifier spec)
         {
-            const string sql = ""
-                + "SELECT PngData, PngDataLen FROM Images"
-                + "    WHERE Latitude  = @latitude"
-                + "      AND Longitude = @longitude"
-                + "      AND Width     = @width"
-                + "      AND Height    = @height"
-                + "      AND Zoom      = @zoom"
-                + "      AND MapType   = @mapType;";
             byte[] buffer = null;
-            using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
+            using (SQLiteCommand command = new SQLiteCommand(SqlStrings.GET_IMAGE, DbConnection))
             {
                 command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
                 command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
@@ -130,16 +206,9 @@ namespace CIOSDigital.FlightPlanner.Database
 
         private void CacheImageAsync(TileSpecifier spec, byte[] image)
         {
-            const string sql = ""
-            + "INSERT OR REPLACE INTO Images VALUES ("
-            + "    @latitude, @longitude,"
-            + "    @width, @height,"
-            + "    @zoom, @mapType,"
-            + "    @pngData, @pngDataLen"
-            + ");";
             Task ignore = Task.Run(() =>
             {
-                using (SQLiteCommand command = new SQLiteCommand(sql, Connection))
+                using (SQLiteCommand command = new SQLiteCommand(SqlStrings.WRITE_IMAGE, DbConnection))
                 {
                     command.Parameters.AddWithValue("@latitude", spec.Coordinate.Latitude);
                     command.Parameters.AddWithValue("@longitude", spec.Coordinate.Longitude);
@@ -152,6 +221,39 @@ namespace CIOSDigital.FlightPlanner.Database
                     command.ExecuteNonQuery();
                 }
             });
+        }
+
+        private static class SqlStrings
+        {
+            public const string CREATE_TABLE = ""
+                + "CREATE TABLE IF NOT EXISTS Images ("
+                + "    Latitude  REAL NOT NULL,"
+                + "    Longitude REAL NOT NULL,"
+                + "    Width  INTEGER NOT NULL,"
+                + "    Height INTEGER NOT NULL,"
+                + "    Zoom REAL NOT NULL,"
+                + "    MapType TEXT NOT NULL,"
+                + "    PngData    BLOB NOT NULL,"
+                + "    PngDataLen INTEGER NOT NULL,"
+                + "    PRIMARY KEY(Latitude, Longitude, Width, Height, Zoom, MapType)"
+                + ");";
+
+            public const string WRITE_IMAGE = ""
+                + "INSERT OR REPLACE INTO Images VALUES ("
+                + "    @latitude, @longitude,"
+                + "    @width, @height,"
+                + "    @zoom, @mapType,"
+                + "    @pngData, @pngDataLen"
+                + ");";
+
+            public const string GET_IMAGE = ""
+                + "SELECT PngData, PngDataLen FROM Images"
+                + "    WHERE Latitude  = @latitude"
+                + "      AND Longitude = @longitude"
+                + "      AND Width     = @width"
+                + "      AND Height    = @height"
+                + "      AND Zoom      = @zoom"
+                + "      AND MapType   = @mapType;";
         }
     }
 }

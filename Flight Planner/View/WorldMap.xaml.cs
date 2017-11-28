@@ -91,7 +91,7 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 return;
             }
-            this.ImageSource = SQLiteMap.OpenDB();
+            this.ImageSource = SQLiteMap.Instance;
             LastZoomLevel = ZoomLevel;
             Point seattle = PixelLocationOf(Seattle, 9);
             PerformScrollBy(new Vector(seattle.X, seattle.Y));

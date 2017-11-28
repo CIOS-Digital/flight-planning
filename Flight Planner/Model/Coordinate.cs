@@ -2,6 +2,7 @@
 {
     public struct Coordinate
     {
+        private const int precision = 1000000;
         public decimal Latitude { get; }
         public decimal Longitude { get; }
         public string dmsLatitude { get; }
@@ -9,39 +10,37 @@
 
         public Coordinate(Coordinate coord)
         {
-            this.Latitude = coord.Latitude;
-            this.Longitude = coord.Longitude;
-            int d, m, s;
+            this.Latitude = System.Math.Truncate(coord.Latitude * precision) / precision;
+            this.Longitude = System.Math.Truncate(coord.Longitude * precision) / precision;
+            int d;
+            double m;
             string sign;
             d = (int)coord.Latitude;
-            m = (int)((coord.Latitude - d) * 60);
-            s = (int)((coord.Latitude - d - m / 60) * 3600);
+            m = (double)(coord.Latitude - d) * 60;
             sign = (d < 0) ? "S" : "N";
-            this.dmsLatitude= string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            this.dmsLatitude = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
 
             d = (int)coord.Longitude;
-            m = (int)((coord.Longitude - d) * 60);
-            s = (int)((coord.Longitude - d - m / 60) * 3600);
+            m = (double)(coord.Longitude - d) * 60;
             sign = (d < 0) ? "W" : "E";
-            this.dmsLongitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            this.dmsLongitude = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
         }
 
         public Coordinate(decimal latitude, decimal longitude)
         {
-            this.Latitude = latitude;
-            this.Longitude = longitude;
-            int d, m, s;
+            this.Latitude = System.Math.Truncate(latitude * precision) / precision;
+            this.Longitude = System.Math.Truncate(longitude * precision) / precision;
+            int d;
+            double m;
             string sign;
             d = (int)latitude;
-            m = (int)((latitude - d) * 60);
-            s = (int)((latitude - d - m / 60) * 3600);
+            m = (double)(latitude - d) * 60;
             sign = (d < 0) ? "S" : "N";
-            this.dmsLatitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            this.dmsLatitude = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
             d = (int)longitude;
-            m = (int)((longitude - d) * 60);
-            s = (int)((longitude - d - m / 60) * 3600);
+            m = (double)(longitude - d) * 60;
             sign = (d < 0) ? "W" : "E";
-            this.dmsLongitude = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            this.dmsLongitude = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
         }
 
         public override bool Equals(object obj)
@@ -79,18 +78,17 @@
 
         private string decimalToDMS(decimal latitude, decimal longitude)
         {
-            int d, m, s;
+            int d;
+            double m;
             string sign;
             d = (int)latitude;
-            m = (int)((latitude - d) * 60);
-            s = (int)((latitude - d - m / 60) * 3600);
+            m = (double)(latitude - d)*60;
             sign = (d < 0) ? "S" : "N";
-            string lat = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            string lat = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
             d = (int)longitude;
-            m = (int)((longitude - d) * 60);
-            s = (int)((longitude - d - m / 60) * 3600);
+            m = (double)(longitude - d) * 60;
             sign = (d < 0) ? "W" : "E";
-            string longi = string.Format("{0}°{1}'{2}\"{3}", System.Math.Abs(d), System.Math.Abs(m), System.Math.Abs(s), sign);
+            string longi = string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
             return lat + " " + longi;
         }
     }

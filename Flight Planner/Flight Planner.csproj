@@ -92,6 +92,9 @@
     <Compile Include="Model\MapType.cs" />
     <Compile Include="Database\SQLiteMap.cs" />
     <Compile Include="Model\Waypoint.cs" />
+    <Compile Include="View\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\FlightTable.xaml.cs">
       <DependentUpon>FlightTable.xaml</DependentUpon>
     </Compile>
@@ -113,6 +116,10 @@
     </Compile>
     <Compile Include="Model\FlightPlan.cs" />
     <Compile Include="Converters\ScaleConverter.cs" />
+    <Page Include="View\AboutWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\FlightTable.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -90,9 +90,9 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="ID"/>
                 <TextBox x:Name="IDInput" Grid.Row="0" Grid.Column="1" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Latitude"/>
-                <TextBox x:Name="LatitudeInput" Grid.Row="1" Grid.Column="1" />
+                <TextBox x:Name="LatitudeInput" Grid.Row="1" Grid.Column="1" KeyDown="Input_KeyDown" />
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Longitude" />
-                <TextBox x:Name="LongitudeInput" Grid.Row="2" Grid.Column="1" KeyDown="LongitudeInput_KeyDown" />
+                <TextBox x:Name="LongitudeInput" Grid.Row="2" Grid.Column="1" KeyDown="Input_KeyDown" />
                 <Button Grid.Row="3" Grid.Column="0"
                         Grid.RowSpan="1" Grid.ColumnSpan="2"
                         Content="Add Waypoint"

@@ -19,7 +19,7 @@
         </Grid.RowDefinitions>
 
         <Button x:Name="DelButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="0"
-               Click="DeleteSelectedClick" ToolTipService.IsEnabled="True">
+               Click="DeleteSelectedClick" ToolTipService.ShowOnDisabled="True">
             <Image Source="/Resources/Cancel.png">
                 <Image.Style>
                     <Style TargetType="Image">
@@ -39,7 +39,7 @@
         </Button>
 
         <Button x:Name="ModButton" IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Grid.Row="0" Grid.Column="1"
-                Click="ModifySelectedClick" ToolTipService.IsEnabled="True">
+                Click="ModifySelectedClick" ToolTipService.ShowOnDisabled="True">
             <Image Source="/Resources/Edit.png">
                 <Image.Style>
                     <Style TargetType="Image">
@@ -60,7 +60,7 @@
 
 
         <Button x:Name="UpButton" Grid.Row="0" Grid.Column="2"
-                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick" ToolTipService.ShowOnDisabled="True">
             <Image Source="/Resources/Up.png" Height="20" >
                 <Image.Style>
                     <Style TargetType="Image">
@@ -79,7 +79,7 @@
             </Button.ToolTip>
         </Button>
         <Button x:Name="DownButton" Grid.Row="0" Grid.Column="3"
-                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick">
+                IsEnabled="{Binding ElementName=Table, Path=SelectedItems.Count}" Click="MoveSelectedClick" ToolTipService.ShowOnDisabled="True">
             <Image Source="/Resources/Down.png" Height="20">
                 <Image.Style>
                     <Style TargetType="Image">

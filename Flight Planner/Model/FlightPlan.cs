@@ -13,7 +13,7 @@ namespace CIOSDigital.FlightPlanner.Model
         private readonly List<Waypoint> Waypoints;
         protected List<Waypoint> originalWaypoints;
         public string filename;
-
+        public UInt16 counter = 0;
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         public FlightPlan()
@@ -22,10 +22,30 @@ namespace CIOSDigital.FlightPlanner.Model
             originalWaypoints = new List<Waypoint>();
         }
 
+        bool WaypointIDExists(Waypoint w)
+        {
+            foreach (Waypoint pt in this.Waypoints)
+            {
+                if (pt.id.Equals(w.id))
+                {
+                    if (!pt.coordinate.Equals(w.coordinate))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         public void AppendWaypoint(Waypoint w)
         {
-            this.Waypoints.Add(w);
-            CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            if (!WaypointIDExists(w))
+            {
+                this.Waypoints.Add(w);
+                CollectionChanged?.Invoke(Waypoints, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+            else
+            {
+                AppendWaypoint(new Waypoint((w.id + this.counter++), w.coordinate));
+            }
         }
 
         public void ModifyWaypoint(int windex, String id)
@@ -149,7 +169,8 @@ namespace CIOSDigital.FlightPlanner.Model
                     && Decimal.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out decimal longitude))
                 {
                     Coordinate c = new Coordinate(latitude, longitude);
-                    idToCoordinate.Add(n.SelectSingleNode("wpns:identifier", mgr).InnerText, c);
+                    if (!idToCoordinate.ContainsKey(n.SelectSingleNode("wpns:identifier", mgr).InnerText))
+                        idToCoordinate.Add(n.SelectSingleNode("wpns:identifier", mgr).InnerText, c);
                 }
             }
 

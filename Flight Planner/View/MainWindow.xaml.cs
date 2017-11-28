@@ -38,7 +38,13 @@ namespace CIOSDigital.FlightPlanner.View
                 && Decimal.TryParse(LongitudeInput.Text, out decimal longitude))
             {
                 Coordinate c = new Coordinate(latitude, longitude);
-                this.ActivePlan.AppendWaypoint(new Waypoint(IDInput.Text, c));
+                string id = IDInput.Text;
+                if (String.IsNullOrEmpty(id))
+                {
+                    id = "W_" + this.ActivePlan.counter.ToString();
+                    this.ActivePlan.counter++;
+                }
+                this.ActivePlan.AppendWaypoint(new Waypoint(id, c));
             }
             LatitudeInput.Clear();
             LongitudeInput.Clear();
@@ -154,12 +160,13 @@ namespace CIOSDigital.FlightPlanner.View
             Map.RefreshWaypoints();
         }
 
-        private void LongitudeInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void Input_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Enter || e.Key == System.Windows.Input.Key.Return)
             {
                 AddWaypoint_Click(sender, e);
             }
         }
+
     }
 }

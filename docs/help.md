@@ -24,6 +24,8 @@ Users may add waypoints in two different manners.
 The first and recommended option is by typing in the coordinate location in both the latitude and longitude input boxes located on the left portion of the window.
 Optionally a user can give each waypoint a unique ID, however this can be omitted and a default unique ID will be assigned.
 
+![Waypoint Input](waypoint-input.png)
+
 In addition to the standard method of entry, a user may also right click at a point on the map and select 'add waypoint.'
 At that particular location on the map, the waypoint will be added with the corresponding latitude and longitude.
 In this step, the user is also given the option to name the waypoints ID if desired.
@@ -40,14 +42,17 @@ To delete a waypoint, using the same table as the edit waypoints section, select
 There are multiple controls to change the views for the map.
 Since this map is using the Google maps API, please allow some time for the maps to load, this can take upwards of a minute or more depending on the computer and connection speed to the internet.
 The following explains the controls:
+
 For panning up and down, or side to side, hold the mouse click on-screen and drag the mouse in the opposite direction.
 Please be patient and allow some time for the maps to download and refresh on screen if it does not immediately appear.
+
 To zoom, in the upper right corner of the screen there are two buttons centered by a sliding bar.
 As long as that slider is not set completely to the right or left side, the user may be able to zoom-in further by adjusting the slider or click on the ‘+’ symbol, or conversely use the ‘-‘ symbol to zoom out.
+
+![Map Zoom](map-zoom.png)
 
 Located next to the left side panel in the upper portion of the map are a series of buttons for the topography of the map.
 By clicking on one of them, a user can select between one of four different views: Roads, Terrain, Satellite, and Hybrid.
 Only one view can be selected at a time, however users can freely change between these views without losing their current location on the map.
 
-## Licensing: ##
-MIT?
+![Map Type](map-type.png)

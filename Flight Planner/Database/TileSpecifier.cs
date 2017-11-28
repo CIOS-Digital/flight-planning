@@ -1,4 +1,5 @@
 ﻿using CIOSDigital.FlightPlanner.Model;
+using System;
 using System.Windows;
 
 namespace CIOSDigital.FlightPlanner.Database
@@ -16,6 +17,19 @@ namespace CIOSDigital.FlightPlanner.Database
             this.MapType = type;
             this.Size = size;
             this.Zoom = zoom;
+        }
+
+        public bool IsValidCoordinate()
+        {
+            return Math.Abs(Coordinate.Latitude) < 70 && Math.Abs(Coordinate.Longitude) < 180;
+        }
+
+        public bool IsEqualTo(TileSpecifier other)
+        {
+            return Coordinate == other.Coordinate
+                   && MapType == other.MapType
+                   && Size == other.Size
+                   && Zoom == other.Zoom;
         }
     }
 }

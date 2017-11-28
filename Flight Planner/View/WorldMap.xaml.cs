@@ -396,7 +396,7 @@ namespace CIOSDigital.FlightPlanner.View
             addWaypoint.Click += delegate { AddWaypoint(null); };
             MenuItem addWaypoint2 = new MenuItem();
             addWaypoint2.Header = "Add Waypoint (no ID)";
-            addWaypoint2.Click += delegate { AddWaypoint(this.ActivePlan.Count<Waypoint>().ToString()); };
+            addWaypoint2.Click += delegate { AddWaypoint(this.ActivePlan.counter.ToString()); this.ActivePlan.counter++; };
 
             contextMenu.Items.Add(addWaypoint);
             contextMenu.Items.Add(addWaypoint2);
@@ -421,9 +421,12 @@ namespace CIOSDigital.FlightPlanner.View
                 dialog.okButton.Content = "Add";
                 dialog.LatitudeInput.Text = popupLoc.Latitude.ToString();
                 dialog.LongitudeInput.Text = popupLoc.Longitude.ToString();
+                dialog.IDInput.Text = this.ActivePlan.counter.ToString();
                 if (dialog.ShowDialog() == true)
                 {
                     this.ActivePlan.AppendWaypoint(new Waypoint(dialog.IDInput.Text, popupLoc));
+                    if (dialog.IDInput.Text.Equals(this.ActivePlan.counter.ToString()))
+                        this.ActivePlan.counter++;
                 }
             } else
             {

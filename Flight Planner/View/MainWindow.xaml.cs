@@ -103,6 +103,13 @@ namespace CIOSDigital.FlightPlanner.View
             }
         }
 
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            var about = AboutWindow.Instance;
+            about.Show();
+            about.Activate();
+        }
+
         private void Quit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();

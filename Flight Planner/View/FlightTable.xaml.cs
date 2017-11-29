@@ -94,12 +94,17 @@ namespace CIOSDigital.FlightPlanner.View
 
                 if (dialog.ShowDialog() == true)
                 {
-                    if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
-    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                    Coordinate c;
+                    try
                     {
-                        Coordinate c = new Coordinate(latitude, longitude);
-                        this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                        c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
                     }
+                    catch (System.ArgumentOutOfRangeException)
+                    {
+                        MessageBox.Show("Latitude/Longitude values are out of range");
+                        return;
+                    }
+                                            this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
                 }
             }
         }

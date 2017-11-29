@@ -367,8 +367,8 @@ namespace CIOSDigital.FlightPlanner.View
         {
             popupLoc = new Coordinate(MouseCoord);
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.Items.Add(popupLoc);
-            contextMenu.Items.Add(new Separator());
+            //contextMenu.Items.Add(popupLoc);
+            //contextMenu.Items.Add(new Separator());
 
             Waypoint waypoint = nearWaypoint(popupLoc);
 
@@ -381,7 +381,7 @@ namespace CIOSDigital.FlightPlanner.View
             contextMenu.Items.Add(delWaypoint);
 
             MenuItem modWaypoint = new MenuItem();
-            modWaypoint.Header = "Modify Waypoint ID";
+            modWaypoint.Header = "Modify Waypoint";
             modWaypoint.Click += delegate { ModifyWaypoint(waypoint); };
             modWaypoint.IsEnabled = false;
             if (waypoint.id != null)
@@ -417,8 +417,9 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 var dialog = new PopupText();
                 dialog.okButton.Content = "Add";
-                dialog.LatitudeInput.Text = popupLoc.Latitude.ToString();
-                dialog.LongitudeInput.Text = popupLoc.Longitude.ToString();
+                Coordinate pos = new Coordinate(popupLoc.Latitude, popupLoc.Longitude);
+                dialog.LatitudeInput.Text = pos.dmsLatitude;
+                dialog.LongitudeInput.Text = pos.dmsLongitude;
                 dialog.IDInput.Text = this.ActivePlan.counter.ToString();
                 if (dialog.ShowDialog() == true)
                 {
@@ -446,16 +447,19 @@ namespace CIOSDigital.FlightPlanner.View
             var dialog = new PopupText();
             dialog.okButton.Content = "Modify";
             dialog.IDInput.Text = w.id;
-            dialog.LatitudeInput.Text = w.coordinate.Latitude.ToString();
-            dialog.LongitudeInput.Text = w.coordinate.Longitude.ToString();
+            dialog.LatitudeInput.Text = w.coordinate.dmsLatitude;
+            dialog.LongitudeInput.Text = w.coordinate.dmsLongitude;
             if (dialog.ShowDialog() == true)
             {
-                if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
-                    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                Coordinate c;
+                try { c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text); }
+                catch (System.ArgumentOutOfRangeException)
                 {
-                    Coordinate c = new Coordinate(latitude, longitude);
-                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                    MessageBox.Show("Latitude/Longitude values are out of range");
+                    return;
                 }
+                    c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
+                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
             }
         }
 

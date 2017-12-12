@@ -243,7 +243,9 @@ namespace CIOSDigital.FlightPlanner.View
             mousePoint = e.GetPosition(this);
             Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
             mousePoint = modifiedMouse;
-            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
+            Coordinate temp = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
+            if (temp.Latitude >= -90 && temp.Latitude <= 80 && temp.Longitude >= -180 && temp.Longitude <= 180)
+                MouseCoord = temp;
         }
 
         private void PerformScrollBy(Vector delta)

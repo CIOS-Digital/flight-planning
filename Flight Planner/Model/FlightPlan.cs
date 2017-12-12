@@ -108,7 +108,7 @@ namespace CIOSDigital.FlightPlanner.Model
             {
                 Formatting = Formatting.Indented,
             };
-            
+
             writer.WriteStartDocument();
             writer.WriteStartElement("flight-plan", xmlns);
             { // Write created date
@@ -153,47 +153,61 @@ namespace CIOSDigital.FlightPlanner.Model
         }
 
 
-        public static int FplRead(XmlDocument document, FlightPlan plan)        {
+        public static int FplRead(XmlDocument document, FlightPlan plan)
+        {
 
             plan.filename = new Uri(document.BaseURI).LocalPath;
             try
             {
                 XmlNamespaceManager mgr = new XmlNamespaceManager(document.NameTable);
-            mgr.AddNamespace("wpns", document.DocumentElement.NamespaceURI);
-            XmlNodeList nodes = document.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
+                mgr.AddNamespace("wpns", document.DocumentElement.NamespaceURI);
+                XmlNodeList nodes = document.DocumentElement.SelectNodes("//wpns:waypoint", mgr);
 
-            var idToCoordinate = new Dictionary<string, Coordinate>();
-            foreach (XmlNode n in nodes)
-            {
-                if (Decimal.TryParse(n.SelectSingleNode("wpns:lat", mgr).InnerText, out decimal latitude) 
-                    && Decimal.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out decimal longitude))
+                var idToCoordinate = new Dictionary<string, Coordinate>();
+                int problems = 0;
+                foreach (XmlNode n in nodes)
                 {
-                    Coordinate c = new Coordinate(latitude, longitude);
-                    if (!idToCoordinate.ContainsKey(n.SelectSingleNode("wpns:identifier", mgr).InnerText))
-                        idToCoordinate.Add(n.SelectSingleNode("wpns:identifier", mgr).InnerText, c);
+                    if (Decimal.TryParse(n.SelectSingleNode("wpns:lat", mgr).InnerText, out decimal latitude)
+                        && Decimal.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out decimal longitude))
+                    {
+                        try
+                        {
+                            Coordinate c = new Coordinate(latitude, longitude);
+                            if (!idToCoordinate.ContainsKey(n.SelectSingleNode("wpns:identifier", mgr).InnerText))
+                                idToCoordinate.Add(n.SelectSingleNode("wpns:identifier", mgr).InnerText, c);
+                        }
+                        catch (System.ArgumentOutOfRangeException)
+                        {
+                            problems++;
+                        }
+                    }
                 }
-            }
+                if (problems > 0)
+                {
+                    System.Windows.MessageBox.Show("File contained lat-long out of bounds\r\n " + problems + " IDs not added to table");
+                }
 
-            XmlNodeList routes = document.DocumentElement.SelectNodes("//wpns:route-point", mgr);
+                XmlNodeList routes = document.DocumentElement.SelectNodes("//wpns:route-point", mgr);
 
                 foreach (XmlNode n in routes)
                 {
                     string ident = n.SelectSingleNode("wpns:waypoint-identifier", mgr).InnerText;
                     if (idToCoordinate.TryGetValue(ident, out Coordinate c))
-                    {
                         plan.AppendWaypoint(new Waypoint(ident, c));
-                    }
                 }
-            } catch (NullReferenceException) {
+            }
+            catch (NullReferenceException)
+            {
                 return -1;
             }
             plan.DuplicateWaypoints();
             return 0;
         }
+
         public void Move(Waypoint w, Direction d)
         {
             var old = this.Waypoints.IndexOf(w);
-            
+
             switch (d)
             {
                 case (Direction.Up):
@@ -203,12 +217,12 @@ namespace CIOSDigital.FlightPlanner.Model
                             this.Waypoints.RemoveAt(old);
                             this.Waypoints.Insert(old - 1, w);
                         }
-                            break;
-                        
+                        break;
+
                     }
                 case (Direction.Down):
                     {
-                        if (old != this.Waypoints.Count-1)
+                        if (old != this.Waypoints.Count - 1)
                         {
                             this.Waypoints.RemoveAt(old);
                             this.Waypoints.Insert(old + 1, w);

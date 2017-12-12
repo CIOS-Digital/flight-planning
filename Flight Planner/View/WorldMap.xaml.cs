@@ -45,7 +45,7 @@ namespace CIOSDigital.FlightPlanner.View
         }
 
         public static DependencyProperty MouseCoordinateProperty =
-    DependencyProperty.Register("MouseCoord", typeof(Coordinate), typeof(WorldMap));
+            DependencyProperty.Register("MouseCoord", typeof(Coordinate), typeof(WorldMap));
         public Coordinate MouseCoord {
             get => (Coordinate)this.GetValue(MouseCoordinateProperty);
             set => this.SetValue(MouseCoordinateProperty, (Coordinate)value);
@@ -53,28 +53,14 @@ namespace CIOSDigital.FlightPlanner.View
 
         private static Coordinate Seattle = new Coordinate(47.62m, -122.35m);
 
-        private int LastZoomLevel {
-            get; set;
-        }
+        private int LastZoomLevel { get; set; }
 
-        private int ZoomLevel {
-            get {
-                return this.ZoomSelector.ZoomLevel;
-            }
-        }
+        private int ZoomLevel => ZoomSelector.ZoomLevel;
 
-        private MapType MapType {
-            get {
-                return this.TypeSelector.MapType;
-            }
-        }
+        private MapType MapType => TypeSelector.MapType;
 
         private Point Location { get; set; }
-        private Point CenterLocation {
-            get {
-                return new Point(Location.X + this.Width / 2, Location.Y + this.Height / 2);
-            }
-        }
+        private Point CenterLocation => new Point(Location.X + ActualWidth / 2.0, Location.Y + ActualHeight / 2.0);
 
         private IMapProvider ImageSource { get; set; }
 
@@ -246,6 +232,18 @@ namespace CIOSDigital.FlightPlanner.View
             MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
         }
 
+        private void ScrollToCenterOn(Point target)
+        {
+            Point trueTarget = new Point(target.X - ActualWidth / 2.0, target.Y - ActualHeight / 2.0);
+            ScrollTo(trueTarget);
+        }
+
+        private void ScrollTo(Point target)
+        {
+            Vector delta = target - Location;
+            PerformScrollBy(delta);
+        }
+
         private void PerformScrollBy(Vector delta)
         {
             this.Location += delta;
@@ -294,9 +292,9 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void ZoomLevelChanged(object sender, RoutedEventArgs e)
         {
-            Location = PixelLocationOf(LocationOfPixel(Location, LastZoomLevel), ZoomLevel);
+            Point center = PixelLocationOf(LocationOfPixel(CenterLocation, LastZoomLevel), ZoomLevel);
             Picture.Children.RemoveRange(0, Picture.Children.Count);
-            PerformScrollBy(new Vector());
+            ScrollToCenterOn(center);
             RefreshWaypoints();
             LastZoomLevel = ZoomLevel;
         }
@@ -458,8 +456,8 @@ namespace CIOSDigital.FlightPlanner.View
                     MessageBox.Show("Latitude/Longitude values are out of range");
                     return;
                 }
-                    c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
-                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
+                this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
             }
         }
 

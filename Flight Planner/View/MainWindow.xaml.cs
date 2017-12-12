@@ -34,18 +34,23 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 this.ActivePlan = new FlightPlan();
             }
-            if (Decimal.TryParse(LatitudeInput.Text, out decimal latitude)
-                && Decimal.TryParse(LongitudeInput.Text, out decimal longitude))
+            Coordinate c;
+            try { c = new Coordinate(LatitudeInput.Text, LongitudeInput.Text); }
+            catch (System.ArgumentOutOfRangeException)
             {
-                Coordinate c = new Coordinate(latitude, longitude);
-                string id = IDInput.Text;
-                if (String.IsNullOrEmpty(id))
-                {
-                    id = "W_" + this.ActivePlan.counter.ToString();
-                    this.ActivePlan.counter++;
-                }
-                this.ActivePlan.AppendWaypoint(new Waypoint(id, c));
+                MessageBox.Show("Lattitude/Longitude values are out of range");
+                LatitudeInput.Focus();
+                return;
             }
+            
+            string id = IDInput.Text;
+            if (String.IsNullOrEmpty(id))
+            {
+                id = "W_" + this.ActivePlan.counter.ToString();
+                this.ActivePlan.counter++;
+            }
+            this.ActivePlan.AppendWaypoint(new Waypoint(id, c));
+            
             LatitudeInput.Clear();
             LongitudeInput.Clear();
             IDInput.Clear();
@@ -168,5 +173,9 @@ namespace CIOSDigital.FlightPlanner.View
             }
         }
 
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            isPNW.IsChecked = !isPNW.IsChecked;
+        }
     }
 }

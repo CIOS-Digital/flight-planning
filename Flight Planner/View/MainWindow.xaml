@@ -18,6 +18,15 @@
                 <Separator/>
                 <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
+            <MenuItem Header="O_ptions">
+                <MenuItem Header="PNW" x:Name="isPNW" IsCheckable="True" IsChecked="True" IsEnabled="False" ToolTipService.ShowOnDisabled="True" Click="MenuItem_Click">
+                    <MenuItem.ToolTip>
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold">Forces West Longitude and North Latitude</TextBlock>
+                        </StackPanel>
+                    </MenuItem.ToolTip>
+                </MenuItem>
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Click="About_Click"/>
             </MenuItem>
@@ -90,9 +99,9 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="ID"/>
                 <TextBox x:Name="IDInput" Grid.Row="0" Grid.Column="1" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Latitude"/>
-                <TextBox x:Name="LatitudeInput" Grid.Row="1" Grid.Column="1" KeyDown="Input_KeyDown" />
+                <local:InputDegBox x:Name="LatitudeInput" Grid.Row="1" Grid.Column="1" KeyDown="Input_KeyDown" />
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Longitude" />
-                <TextBox x:Name="LongitudeInput" Grid.Row="2" Grid.Column="1" KeyDown="Input_KeyDown" />
+                <local:InputDegBox x:Name="LongitudeInput" Grid.Row="2" Grid.Column="1" KeyDown="Input_KeyDown" />
                 <Button Grid.Row="3" Grid.Column="0"
                         Grid.RowSpan="1" Grid.ColumnSpan="2"
                         Content="Add Waypoint"
@@ -105,22 +114,6 @@
                                Grid.Row="2" Grid.RowSpan="3"
                                Grid.Column="0" Grid.ColumnSpan="1"
                                ActivePlan="{Binding ElementName=This, Path=ActivePlan}"/>
-            <!--<GridSplitter Name="VSplitter"
-                          Grid.Row="3" Grid.RowSpan="1"
-                          Grid.Column="0" Grid.ColumnSpan="1"
-                          HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                          Height="8"
-                          Background="{StaticResource GripDots}" />-->
-            <!--<StackPanel Grid.Row="4" Grid.RowSpan="1"
-                        Grid.Column="0" Grid.ColumnSpan="1"
-                        Background="White">
-                <TextBlock Text="(Other flight plans in folder)"/>
-            </StackPanel>-->
-            <!--<GridSplitter Grid.Row="0" Grid.RowSpan="5"
-                          Grid.Column="1" Grid.ColumnSpan="1"
-                          HorizontalAlignment="Center" VerticalAlignment="Stretch"
-                          Width="8"
-                          Background="{StaticResource GripDots}" />-->
             <local:WorldMap x:Name="Map"
                             Grid.Row="0" Grid.RowSpan="5"
                             Grid.Column="2" Grid.ColumnSpan="1"

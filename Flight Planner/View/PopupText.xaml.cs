@@ -66,6 +66,8 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 e.Handled = true;
                 DialogResult = false;
+            } else
+            {
             }
         }
 

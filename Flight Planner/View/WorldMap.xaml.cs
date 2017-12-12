@@ -45,7 +45,7 @@ namespace CIOSDigital.FlightPlanner.View
         }
 
         public static DependencyProperty MouseCoordinateProperty =
-    DependencyProperty.Register("MouseCoord", typeof(Coordinate), typeof(WorldMap));
+            DependencyProperty.Register("MouseCoord", typeof(Coordinate), typeof(WorldMap));
         public Coordinate MouseCoord {
             get => (Coordinate)this.GetValue(MouseCoordinateProperty);
             set => this.SetValue(MouseCoordinateProperty, (Coordinate)value);
@@ -53,28 +53,14 @@ namespace CIOSDigital.FlightPlanner.View
 
         private static Coordinate Seattle = new Coordinate(47.62m, -122.35m);
 
-        private int LastZoomLevel {
-            get; set;
-        }
+        private int LastZoomLevel { get; set; }
 
-        private int ZoomLevel {
-            get {
-                return this.ZoomSelector.ZoomLevel;
-            }
-        }
+        private int ZoomLevel => ZoomSelector.ZoomLevel;
 
-        private MapType MapType {
-            get {
-                return this.TypeSelector.MapType;
-            }
-        }
+        private MapType MapType => TypeSelector.MapType;
 
         private Point Location { get; set; }
-        private Point CenterLocation {
-            get {
-                return new Point(Location.X + this.Width / 2, Location.Y + this.Height / 2);
-            }
-        }
+        private Point CenterLocation => new Point(Location.X + ActualWidth / 2.0, Location.Y + ActualHeight / 2.0);
 
         private IMapProvider ImageSource { get; set; }
 
@@ -248,6 +234,18 @@ namespace CIOSDigital.FlightPlanner.View
                 MouseCoord = temp;
         }
 
+        private void ScrollToCenterOn(Point target)
+        {
+            Point trueTarget = new Point(target.X - ActualWidth / 2.0, target.Y - ActualHeight / 2.0);
+            ScrollTo(trueTarget);
+        }
+
+        private void ScrollTo(Point target)
+        {
+            Vector delta = target - Location;
+            PerformScrollBy(delta);
+        }
+
         private void PerformScrollBy(Vector delta)
         {
             this.Location += delta;
@@ -296,9 +294,9 @@ namespace CIOSDigital.FlightPlanner.View
 
         private void ZoomLevelChanged(object sender, RoutedEventArgs e)
         {
-            Location = PixelLocationOf(LocationOfPixel(Location, LastZoomLevel), ZoomLevel);
+            Point center = PixelLocationOf(LocationOfPixel(CenterLocation, LastZoomLevel), ZoomLevel);
             Picture.Children.RemoveRange(0, Picture.Children.Count);
-            PerformScrollBy(new Vector());
+            ScrollToCenterOn(center);
             RefreshWaypoints();
             LastZoomLevel = ZoomLevel;
         }
@@ -369,8 +367,8 @@ namespace CIOSDigital.FlightPlanner.View
         {
             popupLoc = new Coordinate(MouseCoord);
             ContextMenu contextMenu = new ContextMenu();
-            contextMenu.Items.Add(popupLoc);
-            contextMenu.Items.Add(new Separator());
+            //contextMenu.Items.Add(popupLoc);
+            //contextMenu.Items.Add(new Separator());
 
             Waypoint waypoint = nearWaypoint(popupLoc);
 
@@ -383,7 +381,7 @@ namespace CIOSDigital.FlightPlanner.View
             contextMenu.Items.Add(delWaypoint);
 
             MenuItem modWaypoint = new MenuItem();
-            modWaypoint.Header = "Modify Waypoint ID";
+            modWaypoint.Header = "Modify Waypoint";
             modWaypoint.Click += delegate { ModifyWaypoint(waypoint); };
             modWaypoint.IsEnabled = false;
             if (waypoint.id != null)
@@ -419,8 +417,9 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 var dialog = new PopupText();
                 dialog.okButton.Content = "Add";
-                dialog.LatitudeInput.Text = popupLoc.Latitude.ToString();
-                dialog.LongitudeInput.Text = popupLoc.Longitude.ToString();
+                Coordinate pos = new Coordinate(popupLoc.Latitude, popupLoc.Longitude);
+                dialog.LatitudeInput.Text = pos.dmsLatitude;
+                dialog.LongitudeInput.Text = pos.dmsLongitude;
                 dialog.IDInput.Text = this.ActivePlan.counter.ToString();
                 if (dialog.ShowDialog() == true)
                 {
@@ -448,16 +447,19 @@ namespace CIOSDigital.FlightPlanner.View
             var dialog = new PopupText();
             dialog.okButton.Content = "Modify";
             dialog.IDInput.Text = w.id;
-            dialog.LatitudeInput.Text = w.coordinate.Latitude.ToString();
-            dialog.LongitudeInput.Text = w.coordinate.Longitude.ToString();
+            dialog.LatitudeInput.Text = w.coordinate.dmsLatitude;
+            dialog.LongitudeInput.Text = w.coordinate.dmsLongitude;
             if (dialog.ShowDialog() == true)
             {
-                if (Decimal.TryParse(dialog.LatitudeInput.Text, out decimal latitude)
-                    && Decimal.TryParse(dialog.LongitudeInput.Text, out decimal longitude))
+                Coordinate c;
+                try { c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text); }
+                catch (System.ArgumentOutOfRangeException)
                 {
-                    Coordinate c = new Coordinate(latitude, longitude);
-                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                    MessageBox.Show("Latitude/Longitude values are out of range");
+                    return;
                 }
+                c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
+                this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
             }
         }
 

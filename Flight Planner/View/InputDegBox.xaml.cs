@@ -22,9 +22,9 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 if (!txtBox.Text.Contains(deg))
                 {
-                    if (txtBox.CaretIndex > 0 && char.IsDigit(txtBox.Text[txtBox.CaretIndex - 1]))
+                    int pos = txtBox.CaretIndex;
+                    if (pos > 0 && char.IsDigit(txtBox.Text[pos - 1]))
                     {
-                        int pos = txtBox.CaretIndex;
                         txtBox.Text = txtBox.Text.Insert(pos, deg);
                         txtBox.CaretIndex = pos+1;
                     }
@@ -32,12 +32,12 @@ namespace CIOSDigital.FlightPlanner.View
                 e.Handled = true;
             } else if (e.Key == Key.OemPeriod)
             {
-                if (txtBox.Text.Contains(deg) && !txtBox.Text.Contains(".")) { 
-                    if (txtBox.CaretIndex > 0 && char.IsDigit(txtBox.Text[txtBox.CaretIndex - 1]))
+                if (txtBox.Text.Contains(deg) && !txtBox.Text.Contains(".")) {
+                    int pos = txtBox.CaretIndex;
+                    if (pos > 0 && char.IsDigit(txtBox.Text[pos - 1]))
                     {
-                        if (!txtBox.Text.Contains("'") || txtBox.CaretIndex < txtBox.Text.IndexOf("'"))
+                        if (pos <= txtBox.Text.IndexOf("'"))
                         {
-                            int pos = txtBox.CaretIndex;
                             txtBox.Text = txtBox.Text.Insert(pos, ".");
                             txtBox.CaretIndex = pos + 1;
                         }
@@ -64,9 +64,9 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 if (txtBox.Text.Contains(deg) && !txtBox.Text.Contains("'"))
                 {
-                    if (txtBox.CaretIndex > 0 && char.IsDigit(txtBox.Text[txtBox.CaretIndex - 1]))
+                    int pos = txtBox.CaretIndex;
+                    if (pos > 0 && char.IsDigit(txtBox.Text[pos - 1]))
                     {
-                        int pos = txtBox.CaretIndex;
                         txtBox.Text = txtBox.Text.Insert(pos, "'");
                         txtBox.CaretIndex = pos + 1;
                     }

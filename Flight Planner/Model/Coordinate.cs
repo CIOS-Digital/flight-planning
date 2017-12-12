@@ -25,15 +25,18 @@
         }
 
 
-            public Coordinate(decimal latitude, decimal longitude)
+        public Coordinate(decimal latitude, decimal longitude)
         {
             bool PNW = true;
             this.Latitude = 0;
             this.Longitude = 0;
-            if (PNW) {
+            if (PNW)
+            {
                 this.Latitude = System.Math.Abs(System.Math.Truncate(latitude * precision) / precision);
                 this.Longitude = System.Math.Abs(System.Math.Truncate(longitude * precision) / precision) * -1;
             }
+            if (this.Latitude < -90 || this.Latitude > 80 || this.Longitude < -180 || this.Longitude > 180)
+                throw new System.ArgumentOutOfRangeException("");
             this.dmsLatitude = "";
             this.dmsLongitude = "";
             this.dmsLatitude = dectostringLatitude(this.Latitude);
@@ -104,24 +107,19 @@
             decimal latitude;
             decimal deg;
             decimal min;
-            if (lat.Contains("°"))
+            if (!lat.Contains("°"))
+                lat += "°0'N";
+            string[] seperatedString = lat.Split(new char[] { '°', '\'' });
+            System.Decimal.TryParse(seperatedString[0], out deg);
+            System.Decimal.TryParse(seperatedString[1], out min);
+            if ((deg < -90 || deg > 80))
             {
-                System.Decimal.TryParse(lat.Split('°')[0], out deg);
-                System.Decimal.TryParse(lat.Split('°')[1], out min);
+                throw new System.ArgumentOutOfRangeException("latitude");
             }
-            else
-            {
-                System.Decimal.TryParse(lat, out deg);
-                min = 0;
-            }
-            if ((deg < -90 || deg > 90))
-            {
-                throw new System.ArgumentOutOfRangeException("lattitude");
-            }
-            if (deg < 0)
-                latitude = deg - min / 60;
-            else
-                latitude = deg + min / 60;
+            latitude = System.Math.Abs(deg) + min / 60;
+
+            if (seperatedString[2] == "S")
+                latitude *= -1;
 
             return latitude;
         }
@@ -129,25 +127,22 @@
         {
             decimal longitude;
             decimal deg, min;
-            if (dmsLongitude.Contains("°"))
-            {
-                System.Decimal.TryParse(dmsLongitude.Split('°')[0], out deg);
-                System.Decimal.TryParse(dmsLongitude.Split('°')[1], out min);
-            }
-            else
-            {
-                System.Decimal.TryParse(dmsLongitude, out deg);
-                min = 0;
-            }
+            if (!longi.Contains("°"))
+                longi += "°0'W";
+            string[] seperatedString = longi.Split(new char[] { '°', '\'' });
+
+            System.Decimal.TryParse(seperatedString[0], out deg);
+            System.Decimal.TryParse(seperatedString[1], out min);
+            longitude = System.Math.Abs(deg) + min / 60;
+
+            if (seperatedString[2] == "W")
+                longitude *= -1;
+
             if ((deg < -180 || deg > 180))
             {
                 throw new System.ArgumentOutOfRangeException("longitude");
             }
-            if (deg < 0)
-                longitude = deg - min / 60;
-            else
-                longitude = deg + min / 60;
-
+    
             return longitude;
         }
     }

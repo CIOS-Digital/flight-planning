@@ -1,11 +1,9 @@
 # flight-planning
 
-Code for Whatcom Civil Air Patrol new flight plan editor
+Code for Whatcom Civil Air Patrol flight plan editor
 
 ## Documentation
-
-TBD
+[Brief Documenation](docs/help.md)
 
 ## License
-
-TDB
+See the [LICENSE](LICENSE.md) file for license rights and limitations (MIT)

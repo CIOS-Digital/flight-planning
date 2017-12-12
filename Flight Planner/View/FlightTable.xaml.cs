@@ -13,7 +13,8 @@ namespace CIOSDigital.FlightPlanner.View
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(FlightTable));
 
-        public FlightPlan ActivePlan {
+        public FlightPlan ActivePlan
+        {
             get => this.GetValue(ActivePlanProperty) as FlightPlan;
             set => this.SetValue(ActivePlanProperty, value);
         }
@@ -36,7 +37,6 @@ namespace CIOSDigital.FlightPlanner.View
             }
         }
 
-
         //This looks bad.... but it works?
         private void MoveSelectedClick(object sender, RoutedEventArgs e)
         {
@@ -46,7 +46,9 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 reversed = true;
                 dir = Direction.Down;
-            } else {
+            }
+            else
+            {
                 reversed = false;
                 dir = Direction.Up;
             }
@@ -62,7 +64,7 @@ namespace CIOSDigital.FlightPlanner.View
             }
             if (reversed)
             {
-                for(int i = count-1; i >= 0; i--)
+                for (int i = count - 1; i >= 0; i--)
                 {
                     this.ActivePlan.Move((Waypoint)this.Table.SelectedItems[i], dir);
                 }
@@ -89,8 +91,8 @@ namespace CIOSDigital.FlightPlanner.View
                 var dialog = new PopupText();
                 dialog.okButton.Content = "Modify";
                 dialog.IDInput.Text = item.id;
-                dialog.LatitudeInput.Text = item.coordinate.Latitude.ToString();
-                dialog.LongitudeInput.Text = item.coordinate.Longitude.ToString();
+                dialog.LatitudeInput.Text = item.coordinate.dmsLatitude;
+                dialog.LongitudeInput.Text = item.coordinate.dmsLongitude;
 
                 if (dialog.ShowDialog() == true)
                 {
@@ -104,7 +106,7 @@ namespace CIOSDigital.FlightPlanner.View
                         MessageBox.Show("Latitude/Longitude values are out of range");
                         return;
                     }
-                                            this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
+                    this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
                 }
             }
         }

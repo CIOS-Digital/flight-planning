@@ -108,8 +108,9 @@ namespace CIOSDigital.FlightPlanner.Database
         private static SQLiteConnection OpenDbConnection()
         {
             SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
-            const string filePath = "cios-digital/mapdb.sqlite3";
-            string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            const string filePath = "database/mapdb.sqlite3";
+            string folderPath = Directory.GetCurrentDirectory();
+            //string folderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             string canonicalPath = Path.Combine(folderPath, filePath);
             builder.Uri = "file://" + canonicalPath;
             Directory.CreateDirectory(Path.GetDirectoryName(canonicalPath));

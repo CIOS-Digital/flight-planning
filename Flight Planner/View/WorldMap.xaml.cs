@@ -119,8 +119,13 @@ namespace CIOSDigital.FlightPlanner.View
             // TODO Clean this up
             decimal latitude = (decimal)(radiansToDegrees * (2 * (-piFourths + Math.Atan(Math.Pow(Math.E, (y / (pixelScale * basePixelsPerScalerLatitude)))))));
             decimal longitude = (decimal)(x / pixelScale / basePixelsPerDegreeLongitude);
-
-            return new Coordinate(latitude, longitude);
+            Coordinate c = new Coordinate();
+            try
+            {
+                c = new Coordinate(latitude, longitude);
+            } catch (ArgumentOutOfRangeException)
+            { }
+            return c;
         }
 
         private static decimal DBCoordinateAlignment(int zoomLevel)
@@ -132,7 +137,15 @@ namespace CIOSDigital.FlightPlanner.View
         {
             decimal alignTo = DBCoordinateAlignment(zoomLevel);
             Func<decimal, decimal> align = x => Math.Round(x / alignTo) * alignTo;
-            return new Coordinate(align(input.Latitude), align(input.Longitude));
+            Coordinate c = new Coordinate();
+            try
+            {
+                c = new Coordinate(align(input.Latitude), align(input.Longitude));
+            } catch (ArgumentOutOfRangeException)
+            {
+
+            }
+            return c;
         }
 
         private void AddChildAt(decimal lat, decimal lon)
@@ -284,11 +297,15 @@ namespace CIOSDigital.FlightPlanner.View
             Image[] mapImages = Picture.Children.OfType<Image>().ToArray();
             foreach (Tuple<decimal, decimal> offset in coordinateOffsets)
             {
-                Coordinate coord = new Coordinate(near.Latitude + (offset.Item1 * alignment), near.Longitude + (offset.Item2 * alignment));
-                if (!mapImages.Any(i => ((Coordinate)i.Tag) == coord))
+                try
                 {
-                    this.AddChildAt(coord.Latitude, coord.Longitude);
-                }
+                    Coordinate coord = new Coordinate(near.Latitude + (offset.Item1 * alignment), near.Longitude + (offset.Item2 * alignment));
+                    if (!mapImages.Any(i => ((Coordinate)i.Tag) == coord))
+                    {
+                        this.AddChildAt(coord.Latitude, coord.Longitude);
+                    }
+                } catch(ArgumentOutOfRangeException)
+                { }
             }
         }
 

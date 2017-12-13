@@ -108,7 +108,11 @@
             decimal deg;
             decimal min;
             if (!lat.Contains("°"))
-                lat += "°0'N";
+                lat += "°0";
+            if (!lat.Contains("."))
+                lat += ".0";
+            if (!lat.Contains("'"))
+                lat += "'N";
             string[] seperatedString = lat.Split(new char[] { '°', '\'' });
             System.Decimal.TryParse(seperatedString[0], out deg);
             System.Decimal.TryParse(seperatedString[1], out min);
@@ -118,7 +122,7 @@
             }
             latitude = System.Math.Abs(deg) + min / 60;
 
-            if (seperatedString[2] == "S")
+            if (seperatedString.Length==3 && seperatedString[2] == "S")
                 latitude *= -1;
 
             return latitude;
@@ -128,7 +132,11 @@
             decimal longitude;
             decimal deg, min;
             if (!longi.Contains("°"))
-                longi += "°0'W";
+                longi += "°0";
+            if (!longi.Contains("."))
+                longi += ".0";
+            if (!longi.Contains("'"))
+                longi += "'W";
             string[] seperatedString = longi.Split(new char[] { '°', '\'' });
 
             System.Decimal.TryParse(seperatedString[0], out deg);

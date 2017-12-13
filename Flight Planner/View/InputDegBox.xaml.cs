@@ -36,7 +36,7 @@ namespace CIOSDigital.FlightPlanner.View
                     int pos = txtBox.CaretIndex;
                     if (pos > 0 && char.IsDigit(txtBox.Text[pos - 1]))
                     {
-                        if (pos <= txtBox.Text.IndexOf("'"))
+                        if ((!txtBox.Text.Contains("'")) || (pos <= txtBox.Text.IndexOf("'")))
                         {
                             txtBox.Text = txtBox.Text.Insert(pos, ".");
                             txtBox.CaretIndex = pos + 1;
@@ -80,7 +80,10 @@ namespace CIOSDigital.FlightPlanner.View
                 }
 
             }
-            else if (e.Key == System.Windows.Input.Key.Delete || e.Key == System.Windows.Input.Key.Back || e.Key == System.Windows.Input.Key.Right || e.Key == System.Windows.Input.Key.Left || e.Key == System.Windows.Input.Key.Home || e.Key == System.Windows.Input.Key.End || e.Key == System.Windows.Input.Key.Tab)
+            else if (e.Key == System.Windows.Input.Key.Delete || e.Key == System.Windows.Input.Key.Back || 
+                e.Key == System.Windows.Input.Key.Right || e.Key == System.Windows.Input.Key.Left || 
+                e.Key == System.Windows.Input.Key.Home || e.Key == System.Windows.Input.Key.End || e.Key == System.Windows.Input.Key.Tab ||
+                e.Key == System.Windows.Input.Key.Enter)
             {
 
             }

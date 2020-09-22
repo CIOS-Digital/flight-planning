@@ -3,8 +3,8 @@
     public struct Coordinate
     {
         private const int precision = 1000000;
-        public decimal Latitude { get; }
-        public decimal Longitude { get; }
+        public double Latitude { get; }
+        public double Longitude { get; }
         public string dmsLatitude { get; }
         public string dmsLongitude { get; }
 
@@ -19,22 +19,18 @@
             this.dmsLongitude = longitude.Replace("\'", "");
             this.Latitude = 0;
             this.Longitude = 0;
-            decimal lat = strtodecLattitude(latitude);
-            decimal longi = strtodecLongitude(longitude);
+            double lat = strtodecLattitude(latitude);
+            double longi = strtodecLongitude(longitude);
             this = new Coordinate(lat, longi);
         }
 
 
-        public Coordinate(decimal latitude, decimal longitude)
+        public Coordinate(double latitude, double longitude)
         {
-            bool PNW = true;
-            this.Latitude = 0;
-            this.Longitude = 0;
-            if (PNW)
-            {
-                this.Latitude = System.Math.Abs(System.Math.Truncate(latitude * precision) / precision);
-                this.Longitude = System.Math.Abs(System.Math.Truncate(longitude * precision) / precision) * -1;
-            }
+
+            this.Latitude = System.Math.Truncate(latitude * precision) / precision;
+            this.Longitude = System.Math.Truncate(longitude * precision) / precision;
+
             if (this.Latitude < -90 || this.Latitude > 80 || this.Longitude < -180 || this.Longitude > 180)
                 throw new System.ArgumentOutOfRangeException("");
             this.dmsLatitude = "";
@@ -76,12 +72,12 @@
             return dmsLatitude + " " + dmsLongitude;
         }
 
-        private string decimalToDMS(decimal latitude, decimal longitude)
+        private string decimalToDMS(double latitude, double longitude)
         {
             return dectostringLatitude(latitude) + " " + dectostringLongitude(longitude);
         }
 
-        private string dectostringLatitude(decimal lat)
+        private string dectostringLatitude(double lat)
         {
             int d;
             double m;
@@ -92,7 +88,7 @@
             return string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
         }
 
-        private string dectostringLongitude(decimal longi)
+        private string dectostringLongitude(double longi)
         {
             int d;
             double m;
@@ -102,11 +98,11 @@
             sign = (d < 0) ? "W" : "E";
             return string.Format("{0}°{1:0.00}'{2}", System.Math.Abs(d), System.Math.Abs(m), sign);
         }
-        private decimal strtodecLattitude(string lat)
+        private double strtodecLattitude(string lat)
         {
-            decimal latitude;
-            decimal deg;
-            decimal min;
+            double latitude;
+            double deg;
+            double min;
             if (!lat.Contains("°"))
                 lat += "°0";
             if (!lat.Contains("."))
@@ -114,8 +110,8 @@
             if (!lat.Contains("'"))
                 lat += "'N";
             string[] seperatedString = lat.Split(new char[] { '°', '\'' });
-            System.Decimal.TryParse(seperatedString[0], out deg);
-            System.Decimal.TryParse(seperatedString[1], out min);
+            System.Double.TryParse(seperatedString[0], out deg);
+            System.Double.TryParse(seperatedString[1], out min);
             if ((deg < -90 || deg > 80))
             {
                 throw new System.ArgumentOutOfRangeException("latitude");
@@ -127,10 +123,10 @@
 
             return latitude;
         }
-        private decimal strtodecLongitude(string longi)
+        private double strtodecLongitude(string longi)
         {
-            decimal longitude;
-            decimal deg, min;
+            double longitude;
+            double deg, min;
             if (!longi.Contains("°"))
                 longi += "°0";
             if (!longi.Contains("."))
@@ -139,8 +135,8 @@
                 longi += "'W";
             string[] seperatedString = longi.Split(new char[] { '°', '\'' });
 
-            System.Decimal.TryParse(seperatedString[0], out deg);
-            System.Decimal.TryParse(seperatedString[1], out min);
+            System.Double.TryParse(seperatedString[0], out deg);
+            System.Double.TryParse(seperatedString[1], out min);
             longitude = System.Math.Abs(deg) + min / 60;
 
             if (seperatedString[2] == "W")

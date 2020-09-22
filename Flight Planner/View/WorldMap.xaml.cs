@@ -1,27 +1,27 @@
-﻿using CIOSDigital.FlightPlanner.Database;
-using CIOSDigital.FlightPlanner.Model;
+﻿using CIOSDigital.FlightPlanner.Model;
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Shapes;
-
-using System.Diagnostics;
+using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Mapping;
+using Esri.ArcGISRuntime.Symbology;
+using Esri.ArcGISRuntime.UI;
+using Esri.ArcGISRuntime.UI.Controls;
+using Geometry = Esri.ArcGISRuntime.Geometry.Geometry;
+using System.Collections.Generic;
+using Esri.ArcGISRuntime.Data;
 
 namespace CIOSDigital.FlightPlanner.View
 {
     public partial class WorldMap : UserControl
     {
-        private Point mousePoint;
         public Coordinate mouseCoord { get; set; }
         public Coordinate popupLoc { get; set; }
-        private int movingPointIndex;
-        private Boolean ismovingpoint;
-        private MouseButton lastButton;
+        public GridOptions gridOptions { get; set; }
+        private Dictionary<string, Airport> AirportDict;
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(WorldMap));
         public FlightPlan ActivePlan {
@@ -51,20 +51,16 @@ namespace CIOSDigital.FlightPlanner.View
             set => this.SetValue(MouseCoordinateProperty, (Coordinate)value);
         }
 
-        private static Coordinate Seattle = new Coordinate(47.62m, -122.35m);
-
-        private int LastZoomLevel { get; set; }
-
-        private int ZoomLevel => ZoomSelector.ZoomLevel;
+        private static Coordinate Seattle = new Coordinate(47.62, -122.35);
 
         private MapType MapType => TypeSelector.MapType;
 
         private Point Location { get; set; }
-        private Point CenterLocation => new Point(Location.X + ActualWidth / 2.0, Location.Y + ActualHeight / 2.0);
-
-        private IMapProvider ImageSource { get; set; }
 
         private Point MousePosition { get; set; }
+
+        private GraphicsOverlay _sketchOverlay;
+        private GraphicsOverlay _airportOverlay;
 
         public WorldMap()
         {
@@ -76,365 +72,310 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 return;
             }
-            this.ImageSource = SQLiteMap.Instance;
-            LastZoomLevel = ZoomLevel;
-            Point seattle = PixelLocationOf(Seattle, 9);
-            PerformScrollBy(new Vector(seattle.X, seattle.Y));
-        }
 
-        private static Point PixelLocationOf(Coordinate c, int zoomLevel)
-        {
-            return PixelLocationOf(c.Latitude, c.Longitude, zoomLevel);
-        }
+            this.gridOptions = new GridOptions(true, true, LatitudeLongitudeFormat.DecimalDegrees.ToString());
 
-        private static Coordinate LocationOfPixel(Point p, int zoomLevel)
-        {
-            return LocationOfPixel(p.X, p.Y, zoomLevel);
-        }
 
-        const double basePixelsPerScalerLatitude = 58.0 * 359.0;
-        const double basePixelsPerDegreeLongitude = 364.0;
-        const int baseZoomLevel = 9;
-        const double degreesToRadians = Math.PI / 180.0;
-        const double radiansToDegrees = 180.0 / Math.PI;
-        const double piFourths = Math.PI / 4.0;
+            Map myMap = new Map(BasemapType.StreetsVector, Seattle.Latitude, Seattle.Longitude, 15);
+            myMap = new Map(Basemap.CreateDarkGrayCanvasVector());
+            // Assign the map to the MapView
+            Esri.ArcGISRuntime.UI.Grid grid;
+            grid = new LatitudeLongitudeGrid();
+            // Apply the label format setting.
+            ((LatitudeLongitudeGrid)grid).LabelFormat = (LatitudeLongitudeGridLabelFormat)Enum.Parse(typeof(LatitudeLongitudeGridLabelFormat), gridOptions.LatLongType);
 
-        private static Point PixelLocationOf(decimal latitudeDegrees, decimal longitudeDegrees, int zoomLevel)
-        {
-            double pixelScale = Math.Pow(2.0, (double)zoomLevel - baseZoomLevel);
+            // Next, apply the label visibility setting.
+            grid.IsLabelVisible = true;
+            grid.IsVisible = true;
 
-            double latitudeRadians = degreesToRadians * (double)latitudeDegrees;
-            double latitudeScaler = Math.Log(Math.Tan(piFourths + (0.5 * latitudeRadians)));
-            double latitudePixels = pixelScale * basePixelsPerScalerLatitude * latitudeScaler;
-
-            double longitudePixels = pixelScale * basePixelsPerDegreeLongitude * (double)longitudeDegrees;
-
-            return new Point(longitudePixels, latitudePixels);
-        }
-
-        private static Coordinate LocationOfPixel(double x, double y, int zoomLevel)
-        {
-            double pixelScale = Math.Pow(2.0, (double)zoomLevel - baseZoomLevel);
-
-            // TODO Clean this up
-            decimal latitude = (decimal)(radiansToDegrees * (2 * (-piFourths + Math.Atan(Math.Pow(Math.E, (y / (pixelScale * basePixelsPerScalerLatitude)))))));
-            decimal longitude = (decimal)(x / pixelScale / basePixelsPerDegreeLongitude);
-            Coordinate c = new Coordinate();
-            try
+            // Next, apply the grid color and label color settings for each zoom level.
+            for (long level = 0; level < grid.LevelCount; level++)
             {
-                c = new Coordinate(latitude, longitude);
-            } catch (ArgumentOutOfRangeException)
-            { }
-            return c;
-        }
+                // Set the line symbol.
+                Symbol lineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid,
+                    System.Drawing.Color.Red, 2);
+                grid.SetLineSymbol(level, lineSymbol);
 
-        private static decimal DBCoordinateAlignment(int zoomLevel)
-        {
-            return (decimal)Math.Pow(2, baseZoomLevel - zoomLevel);
-        }
-
-        private static Coordinate AlignDBCoordinate(Coordinate input, int zoomLevel)
-        {
-            decimal alignTo = DBCoordinateAlignment(zoomLevel);
-            Func<decimal, decimal> align = x => Math.Round(x / alignTo) * alignTo;
-            Coordinate c = new Coordinate();
-            try
-            {
-                c = new Coordinate(align(input.Latitude), align(input.Longitude));
-            } catch (ArgumentOutOfRangeException)
-            {
-
-            }
-            return c;
-        }
-
-        private void AddChildAt(decimal lat, decimal lon)
-        {
-            if (DesignerProperties.GetIsInDesignMode(this))
-            {
-                return;
+                // Set the text symbol.
+                Symbol textSymbol = new TextSymbol
+                {
+                    Color = System.Drawing.Color.Red,
+                    OutlineColor = System.Drawing.Color.Red,
+                    Size = 16,
+                    HaloColor = System.Drawing.Color.White,
+                    HaloWidth = 2
+                };
+                grid.SetTextSymbol(level, textSymbol);
             }
 
-            Coordinate coord = new Coordinate(lat, lon);
+            // Create graphics overlay to display sketch geometry
+            _sketchOverlay = new GraphicsOverlay();
+            _airportOverlay = new GraphicsOverlay();
+            MyMapView.GraphicsOverlays.Add(_sketchOverlay);
+            MyMapView.GraphicsOverlays.Add(_airportOverlay);
+            AirportDict = Airport.GetAirpotDict();
+            DisplayAirports();
 
-            this.DownloadsActive += 1;
-            Task<ImageSource> aSource = ImageSource.GetImageAsync(new TileSpecifier(coord, MapType, new Size(640, 640), ZoomLevel));
-            Point centerLocation = PixelLocationOf(lat, lon, ZoomLevel);
 
-            Image child = new Image();
-            child.Tag = coord;
-            this.Picture.Children.Add(child);
-            aSource.ContinueWith((source) =>
+            MyMapView.Map = myMap;
+            MyMapView.Grid = grid;
+            MyMapView.GeoViewTapped += MyMapView_GeoViewTapped;
+            // Set the sketch editor as the page's data context
+            DataContext = MyMapView.SketchEditor;
+        }
+
+        private bool isDrawing = false;
+
+        private async void toggleDraw_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isDrawing)
             {
                 try
                 {
-                    this.Dispatcher.Invoke(() =>
+                    if (!isDrawing)
                     {
-                        this.DownloadsActive -= 1;
-                        if (source.Result != null)
+                        isDrawing = true;
+                        // Let the user draw on the map view using the chosen sketch mode
+                        SketchCreationMode creationMode = SketchCreationMode.Polyline;
+                        Geometry geometry = await MyMapView.SketchEditor.StartAsync(creationMode, true);
+                        // Create and add a graphic from the geometry the user drew
+                        Graphic graphic = CreateGraphic(geometry, GeometryType.Polyline);
+                        var projectedLocation = ((Polyline)geometry).Parts;
+                        _sketchOverlay.Graphics.Add(graphic);
+                        _sketchOverlay.Graphics.Add(CreateGraphic(geometry, GeometryType.Multipoint));
+                        foreach(var point in projectedLocation.SelectMany(x => x.Points))
                         {
-                            child.Source = source.Result;
-                            Panel.SetZIndex(child, (int)(-1000 * ((Coordinate)child.Tag).Latitude));
-                            double dx = 0.5 * source.Result.Width;
-                            double dy = 0.5 * source.Result.Height;
-                            Canvas.SetLeft(child, -Location.X + centerLocation.X - dx);
-                            Canvas.SetBottom(child, -Location.Y + centerLocation.Y - dy);
+                            Geometry myGeometry = GeometryEngine.Project(point, SpatialReferences.Wgs84);
+
+                            // Convert to geometry to a traditional Lat/Long map point
+                            AddWaypoint((MapPoint)myGeometry);
                         }
-                    });
-                }
-                catch (TaskCanceledException tce)
-                {
-                    // Intentionally ignored; thrown when application exits.
-                    tce.Equals(tce);
-                }
-            });
-        }
 
-        private void Root_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            this.MousePosition = e.GetPosition(this);
-            mousePoint = e.GetPosition(this);
-            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
-            mousePoint = modifiedMouse;
-            MouseCoord = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
-            Waypoint waypoint = nearWaypoint(MouseCoord);
-            if (waypoint.id != null)
-            {
-                ismovingpoint = true;
-                movingPointIndex = ActivePlan.GetWaypointIndex(waypoint);
-            }
-            lastButton = MouseButton.Left;
-        }
-
-        private void Root_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (ismovingpoint)
-            {
-                ismovingpoint = false;
-                ActivePlan.ModifyWaypoint(movingPointIndex, MouseCoord);
-                RefreshWaypoints();
-            }
-        }
-
-        private void Root_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed && lastButton != MouseButton.Right)
-            {
-                if (ismovingpoint)
-                {
-                    ActivePlan.ModifyWaypoint(movingPointIndex, MouseCoord);
-                    RefreshWaypoints();
+                    }
                 }
-                else
+                catch (TaskCanceledException)
                 {
-                    Point previous = this.MousePosition;
-                    this.MousePosition = e.GetPosition(this);
-                    Vector delta = Point.Subtract(previous, this.MousePosition);
-                    delta.Y *= -1;
-                    this.PerformScrollBy(delta);
+
+                }
+                catch (Exception ex)
+                {
+                    // Report exceptions
+                    MessageBox.Show("Error drawing graphic shape: " + ex.Message);
                 }
             }
             else
             {
-                //I really hate this... but its the only way I can get around WPF eating the mouse up event
-                Root_MouseUp(sender, e as MouseButtonEventArgs);
-            }
-            mousePoint = e.GetPosition(this);
-            Point modifiedMouse = new Point(mousePoint.X + this.Location.X, this.Location.Y + this.ActualHeight - mousePoint.Y);
-            mousePoint = modifiedMouse;
-            Coordinate temp = new Coordinate(LocationOfPixel(mousePoint, ZoomLevel));
-            if (temp.Latitude >= -90 && temp.Latitude <= 80 && temp.Longitude >= -180 && temp.Longitude <= 180)
-                MouseCoord = temp;
-        }
-
-        private void ScrollToCenterOn(Point target)
-        {
-            Point trueTarget = new Point(target.X - ActualWidth / 2.0, target.Y - ActualHeight / 2.0);
-            ScrollTo(trueTarget);
-        }
-
-        private void ScrollTo(Point target)
-        {
-            Vector delta = target - Location;
-            PerformScrollBy(delta);
-        }
-
-        private void PerformScrollBy(Vector delta)
-        {
-            this.Location += delta;
-
-            for (int i = 0; i < Picture.Children.Count; i += 1)
-            {
-                UIElement child = Picture.Children[i];
-                if (child is Line)
+                if (MyMapView.SketchEditor.CompleteCommand.CanExecute(null))
                 {
-                    Line l = (Line)child;
-                    l.X1 -= delta.X;
-                    l.X2 -= delta.X;
-                    l.Y1 += delta.Y;
-                    l.Y2 += delta.Y;
-                }
-                else
-                {
-                    double x = (double)child.GetValue(Canvas.LeftProperty);
-                    double y = (double)child.GetValue(Canvas.BottomProperty);
-                    Canvas.SetLeft(child, x - delta.X);
-                    Canvas.SetBottom(child, y - delta.Y);
+                    MyMapView.SketchEditor.CompleteCommand.Execute(null);
+                    isDrawing = false;
                 }
             }
-            Picture.UpdateLayout();
-
-            Coordinate near = AlignDBCoordinate(LocationOfPixel(Location, ZoomLevel), ZoomLevel);
-            decimal alignment = DBCoordinateAlignment(ZoomLevel);
-
-            Func<decimal, decimal, Tuple<decimal, decimal>> pair = (x, y) => new Tuple<decimal, decimal>(x, y);
-            Tuple<decimal, decimal>[] coordinateOffsets =
-                Enumerable.Range(-1, 2 + (int)this.ActualHeight / 320)
-                          .SelectMany(lat => Math.Abs(near.Latitude) > 48 ? new decimal[] { lat, lat - 0.5m } : new decimal[] { lat })
-                          .SelectMany(lat => Enumerable.Range(-1, 2 + (int)(this.ActualWidth / basePixelsPerDegreeLongitude)).Select(lon => pair(lat, lon)))
-                          .ToArray();
-
-            Image[] mapImages = Picture.Children.OfType<Image>().ToArray();
-            foreach (Tuple<decimal, decimal> offset in coordinateOffsets)
-            {
-                try
-                {
-                    Coordinate coord = new Coordinate(near.Latitude + (offset.Item1 * alignment), near.Longitude + (offset.Item2 * alignment));
-                    if (!mapImages.Any(i => ((Coordinate)i.Tag) == coord))
-                    {
-                        this.AddChildAt(coord.Latitude, coord.Longitude);
-                    }
-                } catch(ArgumentOutOfRangeException)
-                { }
-            }
         }
 
-        private void ZoomLevelChanged(object sender, RoutedEventArgs e)
+        private async void MyMapView_GeoViewTapped(object sender, GeoViewInputEventArgs e)
         {
-            Point center = PixelLocationOf(LocationOfPixel(CenterLocation, LastZoomLevel), ZoomLevel);
-            Picture.Children.RemoveRange(0, Picture.Children.Count);
-            ScrollToCenterOn(center);
-            RefreshWaypoints();
-            LastZoomLevel = ZoomLevel;
+            // Get the user-tapped location
+            MapPoint mapLocation = e.Location;
+
+            // Project the user-tapped map point location to a geometry
+            Esri.ArcGISRuntime.Geometry.Geometry myGeometry = GeometryEngine.Project(mapLocation, SpatialReferences.Wgs84);
+
+            // Convert to geometry to a traditional Lat/Long map point
+            MapPoint projectedLocation = (MapPoint)myGeometry;
+
+            // Format the display callout string based upon the projected map point (example: "Lat: 100.123, Long: 100.234")
+            string mapLocationDescription = string.Format("Lat: {0:F3} Long:{1:F3}", projectedLocation.Y, projectedLocation.X);
+
+            // Create a new callout definition using the formatted string
+            CalloutDefinition myCalloutDefinition = new CalloutDefinition("Location:", mapLocationDescription);
+
+            // Display the callout
+            // MyMapView.ShowCalloutAt(mapLocation, myCalloutDefinition);
+            double tolerance = 10d; // Use larger tolerance for touch
+            int maximumResults = 1; // Only return one graphic  
+            bool onlyReturnPopups = false; // Return more than popups
+            bool touchedVertix = false;
+
+            try
+            {
+                // Use the following method to identify graphics in a specific graphics overlay
+                IdentifyGraphicsOverlayResult identifyResults = await MyMapView.IdentifyGraphicsOverlayAsync(
+                    _airportOverlay,
+                    e.Position,
+                    tolerance,
+                    onlyReturnPopups,
+                    maximumResults);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error");
+            }
+
+
+            //if (isDrawing && !touchedVertix)
+            //{
+            //    AddWaypoint(projectedLocation);
+            //}
         }
 
         private void MapTypeChanged(object sender, RoutedEventArgs e)
         {
-            {
-                Image[] images = Picture.Children.OfType<Image>().ToArray();
-                foreach (Image i in images)
-                {
-                    Picture.Children.Remove(i);
-                }
+            switch(MapType){
+                case MapType.RoadMap:
+                    MyMapView.Map.Basemap = Basemap.CreateNavigationVector();
+                    return;
+                case MapType.Terrain:
+                    MyMapView.Map.Basemap = Basemap.CreateTopographicVector();
+                    return;
+                case MapType.Hybrid:
+                    MyMapView.Map.Basemap = Basemap.CreateTerrainWithLabelsVector();
+                    return;
+                case MapType.Satellite:
+                    MyMapView.Map.Basemap = Basemap.CreateImagery();
+                    return;
             }
-            PerformScrollBy(new Vector());
         }
 
         private void Root_SizeChanged(object sender, SizeChangedEventArgs e)
         {
 
-            this.PerformScrollBy(new Vector((e.PreviousSize.Width - e.NewSize.Width) / 2, (e.PreviousSize.Height - e.NewSize.Height) / 2));
-            RefreshWaypoints();
+          //  this.PerformScrollBy(new Vector((e.PreviousSize.Width - e.NewSize.Width) / 2, (e.PreviousSize.Height - e.NewSize.Height) / 2));
+           // RefreshWaypoints();
+        }
+
+        public void RefreshGrid()
+        {
+            Esri.ArcGISRuntime.UI.Grid grid;
+            grid = MyMapView.Grid;
+            // Apply the label format setting.
+            ((LatitudeLongitudeGrid)grid).LabelFormat = (LatitudeLongitudeGridLabelFormat)Enum.Parse(typeof(LatitudeLongitudeGridLabelFormat), gridOptions.LatLongType);
+            // Next, apply the label visibility setting.
+            grid.IsLabelVisible = gridOptions.GridLabelsEnabled;
+            grid.IsVisible = gridOptions.GridEnabled;
+
+            MyMapView.Grid = grid;
+        }
+
+        public void DisplayAirports()
+        {
+            List<Airport> airports = Airport.GetAirports();
+            var mapPoints = airports.Select(x => new MapPoint(x.Longitude, x.Latitude)).ToList();
+            PointCollection points = new PointCollection(SpatialReferences.Wgs84);
+            points.AddPoints(mapPoints);
+            var symbol = new SimpleMarkerSymbol()
+            {
+                Color = System.Drawing.Color.Purple,
+                Style = SimpleMarkerSymbolStyle.Circle,
+                Size = 5d
+            };
+            _airportOverlay.Graphics.Add(new Graphic(new Multipoint(points), symbol));
         }
 
         public void RefreshWaypoints()
         {
-            WorldMapHandle[] handles = Picture.Children.OfType<WorldMapHandle>().ToArray();
-            foreach (UIElement h in handles)
-            {
-                Picture.Children.Remove(h);
-            }
-            Line[] lines = Picture.Children.OfType<Line>().ToArray();
-            foreach (UIElement l in lines)
-            {
-                Picture.Children.Remove(l);
-            }
+            _sketchOverlay.Graphics.Clear();
+            // Create a purple simple line symbol
+            SimpleLineSymbol lineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, System.Drawing.Color.Red, 5d);
+            SimpleMarkerSymbol markerSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, System.Drawing.Color.Blue, 15d);
 
-            WorldMapHandle previous = null;
-            foreach (Waypoint w in ActivePlan)
-            {
-                Point p = PixelLocationOf(w.coordinate, ZoomLevel);
-                WorldMapHandle h = new WorldMapHandle();
-                Picture.Children.Add(h);
-                Panel.SetZIndex(h, 500);
-                double x = -Location.X + p.X - h.Width * 0.5;
-                double y = -Location.Y + p.Y;
-                Canvas.SetLeft(h, x);
-                Canvas.SetBottom(h, y);
-                if (previous != null)
-                {
-                    Line l = new Line();
-                    Picture.Children.Add(l);
-                    l.Stroke = new SolidColorBrush(Color.FromArgb(0xA0, 0xFF, 0x0, 0x0));
-                    l.StrokeThickness = 4;
-                    l.StrokeStartLineCap = PenLineCap.Round;
-                    l.StrokeEndLineCap = PenLineCap.Round;
-                    l.X1 = previous.Width / 2 + (double)previous.GetValue(Canvas.LeftProperty);
-                    l.Y1 = Picture.ActualHeight - (double)previous.GetValue(Canvas.BottomProperty);
-                    l.X2 = h.Width / 2 + (double)h.GetValue(Canvas.LeftProperty);
-                    l.Y2 = Picture.ActualHeight - (double)h.GetValue(Canvas.BottomProperty);
-                    //                   Console.WriteLine("{0},{1} to {2},{3}", l.X1, l.Y1, l.X2, l.Y2);
-                }
-                previous = h;
-            }
-            UpdateLayout();
+            // Create a new point collection for polyline
+            var mapPoints = ActivePlan.Select(point => new MapPoint(point.coordinate.Longitude, point.coordinate.Latitude)).ToList();
+
+            Esri.ArcGISRuntime.Geometry.PointCollection points = new PointCollection(SpatialReferences.Wgs84);
+            points.AddPoints(mapPoints);
+
+            // Add graphic to the graphics overlay
+
+            _sketchOverlay.Graphics.Add(new Graphic(new Multipoint(points), markerSymbol));
+            _sketchOverlay.Graphics.Add(new Graphic(new Polyline(points), lineSymbol));
         }
 
-        private void Picture_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private Graphic CreateGraphic(Geometry geometry, GeometryType type)
         {
-            popupLoc = new Coordinate(MouseCoord);
-            ContextMenu contextMenu = new ContextMenu();
-            //contextMenu.Items.Add(popupLoc);
-            //contextMenu.Items.Add(new Separator());
+            // Create a graphic to display the specified geometry
+            Symbol symbol = null;
+            switch (type)
+            {
+                // Symbolize with a fill symbol
+                case GeometryType.Envelope:
+                case GeometryType.Polygon:
+                    {
+                        symbol = new SimpleFillSymbol()
+                        {
+                            Color = System.Drawing.Color.Red,
+                            Style = SimpleFillSymbolStyle.Solid
+                        };
+                        break;
+                    }
+                // Symbolize with a line symbol
+                case GeometryType.Polyline:
+                    {
+                        symbol = new SimpleLineSymbol()
+                        {
+                            Color = System.Drawing.Color.Red,
+                            Style = SimpleLineSymbolStyle.Solid,
+                            Width = 5d
+                        };
+                        break;
+                    }
+                // Symbolize with a marker symbol
+                case GeometryType.Point:
+                case GeometryType.Multipoint:
+                    {
 
-            Waypoint waypoint = nearWaypoint(popupLoc);
+                        symbol = new SimpleMarkerSymbol()
+                        {
+                            Color = System.Drawing.Color.Blue,
+                            Style = SimpleMarkerSymbolStyle.Circle,
+                            Size = 15d
+                        };
+                        break;
+                    }
+            }
 
-            MenuItem delWaypoint = new MenuItem();
-            delWaypoint.Header = "Delete Waypoint";
-            delWaypoint.Click += delegate { DeleteWaypoint(waypoint); };
-            delWaypoint.IsEnabled = false;
-            if (waypoint.id != null)
-                delWaypoint.IsEnabled = true;
-            contextMenu.Items.Add(delWaypoint);
-
-            MenuItem modWaypoint = new MenuItem();
-            modWaypoint.Header = "Modify Waypoint";
-            modWaypoint.Click += delegate { ModifyWaypoint(waypoint); };
-            modWaypoint.IsEnabled = false;
-            if (waypoint.id != null)
-                modWaypoint.IsEnabled = true;
-            contextMenu.Items.Add(modWaypoint);
-
-            MenuItem addWaypoint = new MenuItem();
-            addWaypoint.Header = "Add Waypoint";
-            addWaypoint.Click += delegate { AddWaypoint(null); };
-            MenuItem addWaypoint2 = new MenuItem();
-            addWaypoint2.Header = "Add Waypoint (no ID)";
-            addWaypoint2.Click += delegate { AddWaypoint(this.ActivePlan.counter.ToString()); this.ActivePlan.counter++; };
-
-            contextMenu.Items.Add(addWaypoint);
-            contextMenu.Items.Add(addWaypoint2);
-
-            contextMenu.PlacementTarget = sender as Button;
-            contextMenu.IsOpen = true;
-            lastButton = MouseButton.Right;
+            // pass back a new graphic with the appropriate symbol
+            return new Graphic(geometry, symbol);
         }
 
         Point distance(Coordinate one, Coordinate two)
         {
-            Point pone = PixelLocationOf(one, ZoomLevel);
-            Point ptwo = PixelLocationOf(two, ZoomLevel);
-            Point d = new Point(Math.Abs(pone.X - ptwo.X), pone.Y - ptwo.Y);
+            Point d = new Point(Math.Abs(one.Latitude - two.Latitude), one.Latitude - two.Latitude);
             return d;
         }
 
-        private void AddWaypoint(String id)
+        private void AddWaypoint(MapPoint point, string id = null)
         {
             if (String.IsNullOrEmpty(id))
             {
                 var dialog = new PopupText();
                 dialog.okButton.Content = "Add";
-                Coordinate pos = new Coordinate(popupLoc.Latitude, popupLoc.Longitude);
+                Coordinate pos = new Coordinate(point.Y, point.X);
+                dialog.LatitudeInput.Text = pos.dmsLatitude;
+                dialog.LongitudeInput.Text = pos.dmsLongitude;
+                dialog.IDInput.Text = this.ActivePlan.counter.ToString();
+                if (dialog.ShowDialog() == true)
+                {
+                    this.ActivePlan.AppendWaypoint(new Waypoint(dialog.IDInput.Text, pos));
+                    if (dialog.IDInput.Text.Equals(this.ActivePlan.counter.ToString()))
+                        this.ActivePlan.counter++;
+                }
+            }
+            else
+            {
+                this.ActivePlan.AppendWaypoint(new Waypoint("W_" + id, popupLoc));
+            }
+          //  RefreshWaypoints();
+        }
+
+        private void AddWaypoint(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+            {
+                var dialog = new PopupText();
+                dialog.okButton.Content = "Add";
+                Coordinate pos = new Coordinate(mouseCoord);
                 dialog.LatitudeInput.Text = pos.dmsLatitude;
                 dialog.LongitudeInput.Text = pos.dmsLongitude;
                 dialog.IDInput.Text = this.ActivePlan.counter.ToString();
@@ -449,55 +390,13 @@ namespace CIOSDigital.FlightPlanner.View
             {
                 this.ActivePlan.AppendWaypoint(new Waypoint("W_" + id, popupLoc));
             }
-            RefreshWaypoints();
+           // RefreshWaypoints();
         }
 
         private void DeleteWaypoint(Waypoint w)
         {
             this.ActivePlan.RemoveWaypoint(w);
             RefreshWaypoints();
-        }
-
-        private void ModifyWaypoint(Waypoint w)
-        {
-            int windex = ActivePlan.GetWaypointIndex(w);
-            var dialog = new PopupText();
-            dialog.okButton.Content = "Modify";
-            dialog.IDInput.Text = w.id;
-            dialog.LatitudeInput.Text = w.coordinate.dmsLatitude;
-            dialog.LongitudeInput.Text = w.coordinate.dmsLongitude;
-            if (dialog.ShowDialog() == true)
-            {
-                Coordinate c;
-                try { c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text); }
-                catch (System.ArgumentOutOfRangeException)
-                {
-                    MessageBox.Show("Latitude/Longitude values are out of range");
-                    return;
-                }
-                c = new Coordinate(dialog.LatitudeInput.Text, dialog.LongitudeInput.Text);
-                this.ActivePlan.ModifyWaypoint(windex, dialog.IDText, c);
-            }
-        }
-
-        private Waypoint nearWaypoint(Coordinate coord)
-        {
-            Waypoint waypoint = new Waypoint();
-            Point smallestDistance = new Point(Int32.MaxValue, Int32.MaxValue);
-            foreach (Waypoint w in ActivePlan)
-            {
-                Point d = distance(coord, w.coordinate);
-                if ((d.X < 15) && (d.Y >= -10 && d.Y < 32))
-                {
-                    if (d.X < smallestDistance.X && d.Y < smallestDistance.Y)
-                    {
-                        waypoint = w;
-                        smallestDistance = d;
-                    }
-                }
-
-            }
-            return waypoint;
         }
     }
 }

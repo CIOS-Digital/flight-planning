@@ -167,8 +167,8 @@ namespace CIOSDigital.FlightPlanner.Model
                 int problems = 0;
                 foreach (XmlNode n in nodes)
                 {
-                    if (Decimal.TryParse(n.SelectSingleNode("wpns:lat", mgr).InnerText, out decimal latitude)
-                        && Decimal.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out decimal longitude))
+                    if (Double.TryParse(n.SelectSingleNode("wpns:lat", mgr).InnerText, out double latitude)
+                        && Double.TryParse(n.SelectSingleNode("wpns:lon", mgr).InnerText, out double longitude))
                     {
                         try
                         {

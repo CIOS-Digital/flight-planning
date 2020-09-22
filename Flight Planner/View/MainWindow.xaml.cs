@@ -1,7 +1,9 @@
 ﻿using CIOSDigital.FlightPlanner.Model;
 using Microsoft.Win32;
 using System;
+using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Xml;
@@ -12,6 +14,8 @@ namespace CIOSDigital.FlightPlanner.View
     {
         public static readonly DependencyProperty ActivePlanProperty =
             DependencyProperty.Register("ActivePlan", typeof(FlightPlan), typeof(MainWindow));
+
+        private static FieldInfo _menuDropAlignmentField;
 
         public FlightPlan ActivePlan {
             get => this.GetValue(ActivePlanProperty) as FlightPlan;
@@ -24,8 +28,28 @@ namespace CIOSDigital.FlightPlanner.View
 
         public MainWindow()
         {
+
+            _menuDropAlignmentField = typeof(SystemParameters).GetField("_menuDropAlignment", BindingFlags.NonPublic | BindingFlags.Static);
+            System.Diagnostics.Debug.Assert(_menuDropAlignmentField != null);
+
+            EnsureStandardPopupAlignment();
+            SystemParameters.StaticPropertyChanged += SystemParameters_StaticPropertyChanged;
+
             InitializeComponent();
             this.ActivePlan = new FlightPlan();
+        }
+
+        private static void SystemParameters_StaticPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            EnsureStandardPopupAlignment();
+        }
+
+        private static void EnsureStandardPopupAlignment()
+        {
+            if (SystemParameters.MenuDropAlignment && _menuDropAlignmentField != null)
+            {
+                _menuDropAlignmentField.SetValue(null, false);
+            }
         }
 
         private void AddWaypoint_Click(object sender, RoutedEventArgs e)
@@ -173,9 +197,27 @@ namespace CIOSDigital.FlightPlanner.View
             }
         }
 
-        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        private void decDegrees_Click(object sender, RoutedEventArgs e)
         {
-            isPNW.IsChecked = !isPNW.IsChecked;
+            dms.IsChecked = false;
+            decDegrees.IsChecked = true;
+            Map.gridOptions.LatLongType = "DecimalDegrees";
+            Map.RefreshGrid();
+        }
+
+        private void dms_Click(object sender, RoutedEventArgs e)
+        {
+            decDegrees.IsChecked = decDegrees.IsChecked;
+            dms.IsChecked = true;
+            Map.gridOptions.LatLongType = "DegreesMinutesSeconds";
+            Map.RefreshGrid();
+        }
+
+        private void gridEndabled_Click(object sender, RoutedEventArgs e)
+        {
+            gridEndabled.IsChecked = !gridEndabled.IsChecked;
+            Map.gridOptions.GridEnabled = gridEndabled.IsChecked;
+            Map.RefreshGrid();
         }
     }
 }

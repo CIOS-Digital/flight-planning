@@ -19,13 +19,31 @@
                 <MenuItem Header="_Quit" Click="Quit_Click"/>
             </MenuItem>
             <MenuItem Header="O_ptions">
-                <MenuItem Header="PNW" x:Name="isPNW" IsCheckable="True" IsChecked="True" IsEnabled="False" ToolTipService.ShowOnDisabled="True" Click="MenuItem_Click">
+                <MenuItem Header="Grid Enabled" x:Name="gridEndabled" IsChecked="True" ToolTipService.ShowOnDisabled="True" Click="gridEndabled_Click">
                     <MenuItem.ToolTip>
                         <StackPanel>
-                            <TextBlock FontWeight="Bold">Forces West Longitude and North Latitude</TextBlock>
+                            <TextBlock FontWeight="Bold">Shows the Grid on the map</TextBlock>
                         </StackPanel>
                     </MenuItem.ToolTip>
                 </MenuItem>
+                <Separator />
+
+                <MenuItem Header="Decimal Degrees" x:Name="decDegrees" IsCheckable="True" IsChecked="True" ToolTipService.ShowOnDisabled="True" Click="decDegrees_Click">
+                    <MenuItem.ToolTip>
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold">Uses Decimal Degrees for input and output</TextBlock>
+                        </StackPanel>
+                    </MenuItem.ToolTip>
+                </MenuItem>
+                <MenuItem Header="Degrees Minutes Seconds" x:Name="dms" IsChecked="False" ToolTipService.ShowOnDisabled="True" Click="dms_Click">
+                    <MenuItem.ToolTip>
+                        <StackPanel>
+                            <TextBlock FontWeight="Bold">Uses Decimal Degrees for input and output</TextBlock>
+                        </StackPanel>
+                    </MenuItem.ToolTip>
+                </MenuItem>
+                
+
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Click="About_Click"/>
@@ -120,7 +138,7 @@
             <local:WorldMap x:Name="Map"
                             Grid.Row="0" Grid.RowSpan="5"
                             Grid.Column="2" Grid.ColumnSpan="1"
-                            Panel.ZIndex="-1"
+                            Panel.ZIndex="-2"
                             ActivePlan="{Binding ElementName=This, Path=ActivePlan}" />
         </Grid>
     </DockPanel>
